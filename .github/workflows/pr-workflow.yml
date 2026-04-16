@@ -1,0 +1,92 @@
+name: PR Check and Pre-release Workflow
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  pr-checks:
+    name: Format, Lint, Build, Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Configure GitHub Packages Auth
+        run: |
+          echo "@rapid-recovery-agency-inc:registry=https://npm.pkg.github.com" > ~/.npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ~/.npmrc
+
+      - name: Install dependencies
+        run: |
+          npm install --legacy-peer-deps
+
+      - name: Lint code
+        run: npm run lint
+
+      - name: Run typecheck
+        run: npm run typecheck
+
+      - name: Run format check
+        run: npm run format:check
+
+      - name: Run tests
+        if: github.event.pull_request.draft == false
+        run: npm test
+
+      - name: Check for tests in PR
+        if: github.event.pull_request.draft == false
+        uses: rapid-recovery-agency-inc/check-for-tests-action@main
+
+      - name: Set pre-release version
+        if: github.event.pull_request.draft == false
+        id: set_version
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          COMMIT_SHA=${{ github.event.pull_request.head.sha }}
+          BASE_VERSION=$(node -p "require('./package.json').version")
+          NEW_VERSION="${BASE_VERSION}-pr${PR_NUMBER}-${COMMIT_SHA:0:7}"
+          npm version --no-git-tag-version "$NEW_VERSION"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_ENV
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build
+        if: github.event.pull_request.draft == false
+        run: npm run build
+
+      - name: Publish pre-release
+        if: github.event.pull_request.draft == false
+        run: npm publish --tag prerelease
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Find Comment
+        if: github.event.pull_request.draft == false
+        uses: peter-evans/find-comment@v3
+        id: fc
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: Published pre-release version
+
+      - name: Comment on PR with published version
+        if: github.event.pull_request.draft == false
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            <!-- web-ui-kit-prerelease -->
+            📦 Published pre-release version: `${{ env.new_version }}`
+            Install with:
+            ```
+            npm install @rapid-recovery-agency-inc/sloth-ui-mobile@${{ env.new_version }}
+            ```
+          edit-mode: replace
