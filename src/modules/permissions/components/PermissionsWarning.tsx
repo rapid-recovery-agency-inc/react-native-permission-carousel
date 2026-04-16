@@ -15,7 +15,7 @@ export function PermissionsWarning({
   missingPermissions,
   onRequestPermission,
 }: PermissionsWarningProps): React.JSX.Element {
-  const [showModal, setModal] = useState(Object.keys(missingPermissions)?.length > 0);
+  const [showModal, setModal] = useState(false);
 
   if (showModal) {
     return (
