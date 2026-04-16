@@ -1,17 +1,12 @@
+import type { i18n } from 'i18next';
 import i18next from 'i18next';
 
-import { messages as en } from './locales/en';
+import { messages } from './locales/en';
 
-void i18next.init({
-  lng: 'en',
-  fallbackLng: 'en',
-  resources: {
-    en: {
-      translation: en,
-    },
-  },
-});
+export const PERMISSIONS_I18N_NAMESPACE = 'permissions';
 
-export const i18n = i18next;
+export function addTranslationsTo(i18nInstance: i18n): void {
+  i18nInstance.addResourceBundle('en', PERMISSIONS_I18N_NAMESPACE, messages.permissions, true, true);
+}
 
-export const t = i18next.t;
+export const t = i18next.t.bind(i18next);

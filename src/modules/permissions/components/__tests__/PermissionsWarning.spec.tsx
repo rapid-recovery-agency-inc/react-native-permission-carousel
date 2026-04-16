@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import { PermissionsWarning } from '../PermissionsWarning';
 import { Permission, PermissionConfig, PermissionState } from '../../types';
+import { useThemeColor } from '@rapid-recovery-agency-inc/sloth-ui-mobile';
 
 jest.mock('react-native-permissions', () => ({
   openSettings: jest.fn(),
@@ -35,6 +36,7 @@ jest.mock('@rapid-recovery-agency-inc/sloth-ui-mobile', () => {
       ) : null,
     MainText: ({ children }: { children: React.ReactNode }) => <ReactNative.Text>{children}</ReactNative.Text>,
     Icon: ({ iconName }: { iconName: string }) => <ReactNative.Text>{`icon:${iconName}`}</ReactNative.Text>,
+    useThemeColor: jest.fn().mockReturnValue('#000000'),
   };
 });
 

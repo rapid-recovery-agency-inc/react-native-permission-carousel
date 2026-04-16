@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { openSettings } from 'react-native-permissions';
-import { MainModal, MainText, Icon } from '@rapid-recovery-agency-inc/sloth-ui-mobile';
+import { MainModal, MainText, Icon, useThemeColor } from '@rapid-recovery-agency-inc/sloth-ui-mobile';
 
 import { Permission, Permissions } from '../types';
 import { t } from '../../../shared/i18n';
@@ -17,21 +17,23 @@ export function PermissionsWarning({
 }: PermissionsWarningProps): React.JSX.Element {
   const [showModal, setModal] = useState(false);
 
+  const warningColor = useThemeColor('uiWarningSolid');
+
   if (showModal) {
     return (
       <MainModal
         isVisible={true}
         mode="full"
-        title={t('permissions.missing.intro.title')}
+        title={t('permissions:missing.intro.title')}
         safeAreaInsets={{ top: 56, right: 24, bottom: 0, left: 24 }}
         onClose={() => {
           setModal(false);
         }}
       >
         <View style={styles.container}>
-          <MainText type="BOOK_SM">{t('permissions.missing.intro.message1')}</MainText>
-          <MainText type="BOOK_SM">{t('permissions.missing.intro.message2')}</MainText>
-          <MainText type="BOOK_SM">{t('permissions.missing.intro.message3')}</MainText>
+          <MainText type="BOOK_SM">{t('permissions:missing.intro.message1')}</MainText>
+          <MainText type="BOOK_SM">{t('permissions:missing.intro.message2')}</MainText>
+          <MainText type="BOOK_SM">{t('permissions:missing.intro.message3')}</MainText>
           {Object.entries(missingPermissions)?.map(([key, missingPermission]) => (
             <View key={key} style={styles.content}>
               <MainText type="BOLD_SM">{missingPermission.warningTitle}</MainText>
@@ -47,7 +49,7 @@ export function PermissionsWarning({
                   }}
                 >
                   <MainText type="BOOK_SM" themeColor="uiBrandSolid">
-                    {t(`permissions.missing.actions.openSettings`)}
+                    {t(`permissions:missing.actions.openSettings`)}
                   </MainText>
                 </TouchableOpacity>
               ) : (
@@ -58,7 +60,7 @@ export function PermissionsWarning({
                   }}
                 >
                   <MainText type="BOOK_SM" themeColor="uiBrandSolid">
-                    {t(`permissions.missing.actions.request`)}
+                    {t(`permissions:missing.actions.request`)}
                   </MainText>
                 </TouchableOpacity>
               )}
@@ -77,8 +79,8 @@ export function PermissionsWarning({
         }}
         style={styles.button}
       >
-        <View style={styles.icon}>
-          <Icon iconName="exclamation" color="WHITE" size={20} />
+        <View style={[styles.icon, { backgroundColor: warningColor }]}>
+          <Icon iconName="exclamation" themeColor="fgAlwaysWhite" size={20} />
         </View>
       </TouchableOpacity>
     );
@@ -96,7 +98,6 @@ const styles = StyleSheet.create({
     height: 40,
   },
   icon: {
-    backgroundColor: 'fgWarningContrast',
     width: 40,
     height: 40,
     alignItems: 'center',
