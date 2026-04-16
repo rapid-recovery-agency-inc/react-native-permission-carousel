@@ -123,3 +123,16 @@ export interface Permissions {
   pushNotifications: PermissionConfig;
   tracking: PermissionConfig;
 }
+
+/**
+ * WarningButtonPosition: A restricted style type for positioning the PermissionsWarning button.
+ * Only layout/position properties are accepted — appearance cannot be overridden.
+ */
+export type WarningButtonPosition = {
+  top?: number;
+  right?: number;
+  bottom?: number;
+  left?: number;
+  width?: number;
+  height?: number;
+};

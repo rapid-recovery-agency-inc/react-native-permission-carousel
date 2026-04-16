@@ -3,17 +3,19 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { openSettings } from 'react-native-permissions';
 import { MainModal, MainText, Icon, useThemeColor } from '@rapid-recovery-agency-inc/sloth-ui-mobile';
 
-import { Permission, Permissions } from '../types';
+import { Permission, Permissions, WarningButtonPosition } from '../types';
 import { t } from '../../../shared/i18n';
 
 export interface PermissionsWarningProps {
   missingPermissions: Partial<Permissions>;
   onRequestPermission: (permission: Permission) => Promise<void>;
+  buttonPosition?: WarningButtonPosition;
 }
 
 export function PermissionsWarning({
   missingPermissions,
   onRequestPermission,
+  buttonPosition,
 }: PermissionsWarningProps): React.JSX.Element {
   const [showModal, setModal] = useState(false);
 
@@ -74,10 +76,11 @@ export function PermissionsWarning({
   if (Object.keys(missingPermissions)?.length > 0) {
     return (
       <TouchableOpacity
+        testID="permissions-warning-button"
         onPress={() => {
           setModal(true);
         }}
-        style={styles.button}
+        style={[styles.button, buttonPosition]}
       >
         <View style={[styles.icon, { backgroundColor: warningColor }]}>
           <Icon iconName="exclamation" themeColor="fgAlwaysWhite" size={20} />

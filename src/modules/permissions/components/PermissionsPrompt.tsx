@@ -3,7 +3,13 @@ import { Platform } from 'react-native';
 import { PERMISSIONS, PermissionStatus, request, requestNotifications } from 'react-native-permissions';
 
 import { usePermissionsContext } from '../hooks/usePermissionsContext';
-import { LocationPermissionGrantLevel, Permission, Permissions, PermissionState } from '../types';
+import {
+  LocationPermissionGrantLevel,
+  Permission,
+  Permissions,
+  PermissionState,
+  WarningButtonPosition,
+} from '../types';
 import { getPermissionStateFromPermissionStatus } from '../utils';
 
 import { PermissionsWarning } from './PermissionsWarning';
@@ -13,7 +19,11 @@ type PermissionsCarouselRequest = NonNullable<
   React.ComponentProps<typeof PermissionsCarousel>['requests']
 >[number];
 
-export function PermissionsPrompt(): React.JSX.Element {
+export interface PermissionsPromptProps {
+  warningButtonPosition?: WarningButtonPosition;
+}
+
+export function PermissionsPrompt({ warningButtonPosition }: PermissionsPromptProps = {}): React.JSX.Element {
   const { initialised, permissions, setPermissions } = usePermissionsContext();
 
   const [frozenRequests, setFrozenRequests] = useState<
@@ -361,7 +371,11 @@ export function PermissionsPrompt(): React.JSX.Element {
     <>
       {isCarouselVisible ? <PermissionsCarousel isVisible={isCarouselVisible} requests={requests} /> : null}
       {isWarningVisible ? (
-        <PermissionsWarning missingPermissions={missingPermissions} onRequestPermission={handleRequest} />
+        <PermissionsWarning
+          missingPermissions={missingPermissions}
+          onRequestPermission={handleRequest}
+          buttonPosition={warningButtonPosition}
+        />
       ) : null}
     </>
   );

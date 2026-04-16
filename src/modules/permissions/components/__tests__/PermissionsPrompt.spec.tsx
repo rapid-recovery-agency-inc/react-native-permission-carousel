@@ -7,7 +7,7 @@ import {
   PermissionsContextValue,
   initialPermissionsContextState,
 } from '../PermissionsProvider';
-import { PermissionsPrompt } from '../PermissionsPrompt';
+import { PermissionsPrompt, PermissionsPromptProps } from '../PermissionsPrompt';
 import {
   LocationPermissionGrantLevel,
   Permission,
@@ -68,12 +68,14 @@ jest.mock('../PermissionsCarousel', () => {
   };
 });
 
-// Warning mock renders a testID marker so the test can assert presence/absence.
+// Warning mock renders a testID marker and exposes buttonPosition so the test can assert forwarding.
 jest.mock('../PermissionsWarning', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const RN = require('react-native');
   return {
-    PermissionsWarning: () => <RN.View testID="permissions-warning" />,
+    PermissionsWarning: ({ buttonPosition }: { buttonPosition?: object }) => (
+      <RN.View testID="permissions-warning" style={buttonPosition} />
+    ),
   };
 });
 
@@ -119,10 +121,16 @@ const createContextValue = (overrides: Partial<PermissionsContextValue> = {}): P
   ...overrides,
 });
 
-function TestWrapper({ contextValue }: { contextValue: PermissionsContextValue }): React.JSX.Element {
+function TestWrapper({
+  contextValue,
+  promptProps,
+}: {
+  contextValue: PermissionsContextValue;
+  promptProps?: PermissionsPromptProps;
+}): React.JSX.Element {
   return (
     <PermissionsContext.Provider value={contextValue}>
-      <PermissionsPrompt />
+      <PermissionsPrompt {...promptProps} />
     </PermissionsContext.Provider>
   );
 }
@@ -329,6 +337,29 @@ describe('PermissionsPrompt', () => {
       );
 
       expect(screen.queryByTestId('permissions-warning')).toBeNull();
+    });
+  });
+
+  describe('warningButtonPosition', () => {
+    it('should forward warningButtonPosition to the warning component', () => {
+      const customStyle = { top: 10, right: 10 };
+
+      render(
+        <TestWrapper
+          contextValue={createContextValue({
+            permissions: createPermissions({
+              camera: createPermissionConfig({
+                required: true,
+                requested: true,
+                permissionState: PermissionState.DENIED,
+              }),
+            }),
+          })}
+          promptProps={{ warningButtonPosition: customStyle }}
+        />,
+      );
+
+      expect(screen.getByTestId('permissions-warning')).toHaveStyle(customStyle);
     });
   });
 });

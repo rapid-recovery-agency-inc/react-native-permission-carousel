@@ -97,4 +97,20 @@ describe('PermissionsWarning', () => {
     expect(screen.queryByText('Required Permissions')).toBeNull();
     expect(screen.getByText('icon:exclamation')).toBeTruthy();
   });
+
+  it('should apply a custom buttonPosition to the warning button', () => {
+    const onRequestPermission = jest.fn().mockResolvedValue(undefined);
+    const customStyle = { top: 10, right: 10 };
+
+    render(
+      <PermissionsWarning
+        missingPermissions={{ camera: createMissingPermission() }}
+        onRequestPermission={onRequestPermission}
+        buttonPosition={customStyle}
+      />,
+    );
+
+    const button = screen.getByTestId('permissions-warning-button');
+    expect(button).toHaveStyle(customStyle);
+  });
 });

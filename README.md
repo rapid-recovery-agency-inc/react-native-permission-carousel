@@ -51,12 +51,12 @@ npm install @rapid-recovery-agency-inc/react-native-permission-carousel
 
 The following peer dependencies must be installed in your project:
 
-| Package | Version |
-|---|---|
-| `react` | `>=18.2.0 <20.0.0` |
-| `react-native` | `>=0.71.16 <=0.81.4` |
-| `react-native-permissions` | `^5.5.1` |
-| `i18next` | `>=23.0.0` |
+| Package                    | Version              |
+| -------------------------- | -------------------- |
+| `react`                    | `>=18.2.0 <20.0.0`   |
+| `react-native`             | `>=0.71.16 <=0.81.4` |
+| `react-native-permissions` | `^5.5.1`             |
+| `i18next`                  | `>=23.0.0`           |
 
 Refer to the [`react-native-permissions` setup guide](https://github.com/zoontek/react-native-permissions) for platform-specific configuration (iOS `Info.plist` entries and Android `AndroidManifest.xml` permissions).
 
@@ -110,10 +110,7 @@ const APP_PERMISSIONS = {
 
 export default function App() {
   return (
-    <PermissionsProvider
-      permissions={APP_PERMISSIONS}
-      permissionsStorageKey="@my-app/permissions"
-    >
+    <PermissionsProvider permissions={APP_PERMISSIONS} permissionsStorageKey="@my-app/permissions">
       {/* rest of your app */}
     </PermissionsProvider>
   );
@@ -122,28 +119,28 @@ export default function App() {
 
 **`PermissionsProvider` Props**
 
-| Prop | Type | Required | Description |
-|---|---|---|---|
-| `permissions` | `Permissions` | Yes | The permissions configuration object for your application. |
-| `permissionsStorageKey` | `string` | No | A unique key used to persist permission state via AsyncStorage. Defaults to `@insightt-mobile-app/permissions`. |
+| Prop                    | Type          | Required | Description                                                                                                     |
+| ----------------------- | ------------- | -------- | --------------------------------------------------------------------------------------------------------------- |
+| `permissions`           | `Permissions` | Yes      | The permissions configuration object for your application.                                                      |
+| `permissionsStorageKey` | `string`      | No       | A unique key used to persist permission state via AsyncStorage. Defaults to `@insightt-mobile-app/permissions`. |
 
 **`PermissionConfig` Fields**
 
-| Field | Type | Description |
-|---|---|---|
-| `title` | `string` | Display name for the permission, shown in the prompt UI. |
-| `description` | `string` | Explanation of why the permission is needed. |
-| `iconName` | `string` | A valid FontAwesome icon name (from the Sloth UI Mobile library). |
-| `warningTitle` | `string` | Title shown in the warning screen if the permission is denied or blocked. |
-| `warningMessage1` | `string` | First message line in the warning screen. |
-| `warningMessage2` | `string` | Second message line in the warning screen. |
-| `os` | `'*' \| 'ios' \| 'android'` | Limits the permission to a specific platform. Use `'*'` for both. |
-| `required` | `boolean` | Whether the permission is required for core app functionality. |
-| `prompt` | `boolean` | Whether to prompt on load. Set to `false` to defer until a specific feature is used (see `usePermissionsRequest`). |
-| `requested` | `boolean` | Whether the native permission dialog has already been shown. Set to `false` initially. |
-| `skipped` | `boolean` | Whether the user has skipped the prompt. Set to `false` initially. |
-| `permissionState` | `PermissionState \| null` | Current state of the permission. Set to `null` initially. |
-| `locationGrantLevel` | `LocationPermissionGrantLevel` | *(Location only)* The level of location access granted. Set to `LocationPermissionGrantLevel.NONE` initially. |
+| Field                | Type                           | Description                                                                                                        |
+| -------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| `title`              | `string`                       | Display name for the permission, shown in the prompt UI.                                                           |
+| `description`        | `string`                       | Explanation of why the permission is needed.                                                                       |
+| `iconName`           | `string`                       | A valid FontAwesome icon name (from the Sloth UI Mobile library).                                                  |
+| `warningTitle`       | `string`                       | Title shown in the warning screen if the permission is denied or blocked.                                          |
+| `warningMessage1`    | `string`                       | First message line in the warning screen.                                                                          |
+| `warningMessage2`    | `string`                       | Second message line in the warning screen.                                                                         |
+| `os`                 | `'*' \| 'ios' \| 'android'`    | Limits the permission to a specific platform. Use `'*'` for both.                                                  |
+| `required`           | `boolean`                      | Whether the permission is required for core app functionality.                                                     |
+| `prompt`             | `boolean`                      | Whether to prompt on load. Set to `false` to defer until a specific feature is used (see `usePermissionsRequest`). |
+| `requested`          | `boolean`                      | Whether the native permission dialog has already been shown. Set to `false` initially.                             |
+| `skipped`            | `boolean`                      | Whether the user has skipped the prompt. Set to `false` initially.                                                 |
+| `permissionState`    | `PermissionState \| null`      | Current state of the permission. Set to `null` initially.                                                          |
+| `locationGrantLevel` | `LocationPermissionGrantLevel` | _(Location only)_ The level of location access granted. Set to `LocationPermissionGrantLevel.NONE` initially.      |
 
 ---
 
@@ -165,6 +162,12 @@ export default function HomeScreen() {
 ```
 
 `PermissionsPrompt` automatically shows the carousel for any permissions with `prompt: true` that have not yet been requested or skipped. Once all prompted permissions are handled, it will display a warning screen for any required permissions that are denied or blocked.
+
+**`PermissionsPrompt` Props**
+
+| Prop                    | Type                    | Required | Description                                                                                                                                                                                                    |
+| ----------------------- | ----------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `warningButtonPosition` | `WarningButtonPosition` | No       | Override the position of the warning button. The button is always positioned absolutely; this prop accepts only `top`, `right`, `bottom`, `left`, `width`, and `height`. Defaults to `{ top: 64, right: 64 }`. |
 
 ---
 
@@ -210,27 +213,27 @@ Translations are registered under the `permissions` namespace, exported as `PERM
 
 **Components**
 
-| Export | Description |
-|---|---|
+| Export                | Description                                                                                     |
+| --------------------- | ----------------------------------------------------------------------------------------------- |
 | `PermissionsProvider` | Context provider that manages permission state. Must wrap any component that uses this library. |
-| `PermissionsPrompt` | Renders the permission request carousel and warning screens. |
+| `PermissionsPrompt`   | Renders the permission request carousel and warning screens.                                    |
 
 **Hooks**
 
-| Export | Description |
-|---|---|
+| Export                              | Description                                                                                        |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------- |
 | `usePermissionsRequest(permission)` | Triggers a contextual permission prompt for the given permission. Use on feature-specific screens. |
-| `usePermissionsContext()` | Returns the full permissions context, including state and control functions. |
+| `usePermissionsContext()`           | Returns the full permissions context, including state and control functions.                       |
 
 **Types & Enums**
 
-| Export | Description |
-|---|---|
-| `Permission` | Enum of supported permission types: `LOCATION`, `CAMERA`, `PUSH_NOTIFICATIONS`, `TRACKING`. |
-| `PermissionState` | Enum of permission states: `GRANTED`, `DENIED`, `BLOCKED`. |
-| `LocationPermissionGrantLevel` | Enum for location grant levels: `NONE`, `WHILE_IN_USE`, `ALWAYS`. |
-| `PermissionConfig` | Interface describing the configuration for a single permission. |
-| `Permissions` | Interface describing the full permissions configuration object. |
+| Export                         | Description                                                                                 |
+| ------------------------------ | ------------------------------------------------------------------------------------------- |
+| `Permission`                   | Enum of supported permission types: `LOCATION`, `CAMERA`, `PUSH_NOTIFICATIONS`, `TRACKING`. |
+| `PermissionState`              | Enum of permission states: `GRANTED`, `DENIED`, `BLOCKED`.                                  |
+| `LocationPermissionGrantLevel` | Enum for location grant levels: `NONE`, `WHILE_IN_USE`, `ALWAYS`.                           |
+| `PermissionConfig`             | Interface describing the configuration for a single permission.                             |
+| `Permissions`                  | Interface describing the full permissions configuration object.                             |
 
 ---
 
@@ -270,16 +273,16 @@ This project uses [Husky](https://typicode.github.io/husky/) to enforce quality 
 
 ### Scripts
 
-| Script | Description |
-|---|---|
-| `npm run build` | Compiles TypeScript source files. |
-| `npm run lint` | Runs ESLint across the `src` directory. |
-| `npm run lint-fix` | Runs ESLint and automatically fixes issues where possible. |
-| `npm run format` | Formats source files with Prettier. |
-| `npm run format-check` | Checks source files for formatting issues without writing changes. |
-| `npm run typecheck` | Runs the TypeScript compiler without emitting files to check for type errors. |
-| `npm run test` | Runs the full Jest test suite. |
-| `npm run test-watch` | Runs Jest in watch mode. |
+| Script                 | Description                                                                   |
+| ---------------------- | ----------------------------------------------------------------------------- |
+| `npm run build`        | Compiles TypeScript source files.                                             |
+| `npm run lint`         | Runs ESLint across the `src` directory.                                       |
+| `npm run lint-fix`     | Runs ESLint and automatically fixes issues where possible.                    |
+| `npm run format`       | Formats source files with Prettier.                                           |
+| `npm run format-check` | Checks source files for formatting issues without writing changes.            |
+| `npm run typecheck`    | Runs the TypeScript compiler without emitting files to check for type errors. |
+| `npm run test`         | Runs the full Jest test suite.                                                |
+| `npm run test-watch`   | Runs Jest in watch mode.                                                      |
 
 ---
 
