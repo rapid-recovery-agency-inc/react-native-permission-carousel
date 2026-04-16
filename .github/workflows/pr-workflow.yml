@@ -27,10 +27,13 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Configure GitHub Packages Auth
+      - name: Configure NPM Auth
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          rm -f .npmrc
           echo "@rapid-recovery-agency-inc:registry=https://npm.pkg.github.com" > ~/.npmrc
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ~/.npmrc
+          echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" >> ~/.npmrc
 
       - name: Install dependencies
         run: |
