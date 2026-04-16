@@ -362,4 +362,68 @@ describe('PermissionsPrompt', () => {
       expect(screen.getByTestId('permissions-warning')).toHaveStyle(customStyle);
     });
   });
+
+  describe('cycle reset does not modify permissions context', () => {
+    it('should not call setPermissions when the cycle-completion reset occurs', async () => {
+      const setPermissionsSpy = jest.fn();
+
+      // A wrapper that holds real permissions state AND records every setPermissions call,
+      // so we can verify the cycle-completion reset never touches the external context.
+      function SpyWrapper(): React.JSX.Element {
+        const [permissions, setPermissionsState] = React.useState(
+          createPermissions({
+            camera: createPermissionConfig({ title: 'Camera', prompt: true }),
+          }),
+        );
+        const setPermissions = React.useCallback((p: Permissions) => {
+          setPermissionsSpy(p);
+          setPermissionsState(p);
+        }, []);
+        const contextValue: PermissionsContextValue = {
+          ...initialPermissionsContextState,
+          permissions,
+          initialised: true,
+          hasPermission: () => false,
+          setPermissions,
+          promptPermission: jest.fn(),
+          clearPermissionPrompt: jest.fn(),
+        };
+        return (
+          <PermissionsContext.Provider value={contextValue}>
+            <PermissionsPrompt />
+          </PermissionsContext.Provider>
+        );
+      }
+
+      render(<SpyWrapper />);
+
+      // Wait for the carousel to appear (effect snapshots the cycle).
+      await waitFor(() => {
+        expect(screen.getByTestId('permissions-carousel')).toBeTruthy();
+      });
+
+      // Reset the spy count so we only count calls that happen after the carousel appears.
+      setPermissionsSpy.mockClear();
+
+      // Skip the single permission — marks it as handled and triggers the cycle reset.
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('carousel-skip-0'));
+      });
+
+      // The carousel should disappear (cycle completed).
+      await waitFor(() => {
+        expect(screen.queryByTestId('permissions-carousel')).toBeNull();
+      });
+
+      // setPermissions should have been called exactly once: to mark camera as skipped.
+      // The cycle-completion reset (clearing frozenRequests / handledPermissions) must NOT
+      // call setPermissions.
+      expect(setPermissionsSpy).toHaveBeenCalledTimes(1);
+      expect(setPermissionsSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          camera: expect.objectContaining({ skipped: true }),
+        }),
+      );
+    });
+  });
 });
