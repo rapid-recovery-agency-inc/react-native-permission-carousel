@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 import { PERMISSIONS, PermissionStatus, request, requestNotifications } from 'react-native-permissions';
 
+import { PermissionsCarousel } from './PermissionsCarousel';
+
 import { usePermissionsContext } from '../hooks/usePermissionsContext';
 import {
   LocationPermissionGrantLevel,
@@ -12,7 +14,6 @@ import {
 } from '../types';
 import { getPermissionStateFromPermissionStatus } from '../utils';
 
-import { PermissionsCarousel } from './PermissionsCarousel';
 import { PermissionsWarning } from './PermissionsWarning';
 
 type PermissionsCarouselRequest = NonNullable<
@@ -179,15 +180,10 @@ export function PermissionsPrompt({ warningButtonPosition }: PermissionsPromptPr
     [updatePermission],
   );
 
-  const requestLocationPermission = useCallback(async (): Promise<boolean> => {
+  const requestLocationPermission = useCallback(async (): Promise<void> => {
     if (Platform.OS === 'ios') {
       if (permissions.location.locationGrantLevel === LocationPermissionGrantLevel.WHILE_IN_USE) {
-        let alwaysStatus: PermissionStatus;
-        try {
-          alwaysStatus = await request(PERMISSIONS.IOS.LOCATION_ALWAYS);
-        } catch {
-          return false;
-        }
+        const alwaysStatus: PermissionStatus = await request(PERMISSIONS.IOS.LOCATION_ALWAYS);
         const alwaysState = getPermissionStateFromPermissionStatus(alwaysStatus);
 
         if (alwaysState === PermissionState.GRANTED) {
@@ -196,7 +192,7 @@ export function PermissionsPrompt({ warningButtonPosition }: PermissionsPromptPr
             PermissionState.GRANTED,
             LocationPermissionGrantLevel.ALWAYS,
           );
-          return true;
+          return;
         }
 
         completeNativePermissionRequest(
@@ -204,35 +200,27 @@ export function PermissionsPrompt({ warningButtonPosition }: PermissionsPromptPr
           PermissionState.GRANTED,
           LocationPermissionGrantLevel.WHILE_IN_USE,
         );
-        return true;
+        return;
       }
 
-      let whenInUseStatus: PermissionStatus;
-      try {
-        whenInUseStatus = await request(PERMISSIONS.IOS.LOCATION_WHEN_IN_USE);
-      } catch {
-        return false;
-      }
+      const whenInUseStatus: PermissionStatus = await request(PERMISSIONS.IOS.LOCATION_WHEN_IN_USE);
       const whenInUseState = getPermissionStateFromPermissionStatus(whenInUseStatus);
+
       if (whenInUseState !== PermissionState.GRANTED) {
         completeNativePermissionRequest(Permission.LOCATION, whenInUseState, LocationPermissionGrantLevel.NONE);
-        return true;
+        return;
       }
 
-      let alwaysStatus: PermissionStatus;
-      try {
-        alwaysStatus = await request(PERMISSIONS.IOS.LOCATION_ALWAYS);
-      } catch {
-        return false;
-      }
+      const alwaysStatus: PermissionStatus = await request(PERMISSIONS.IOS.LOCATION_ALWAYS);
       const alwaysState = getPermissionStateFromPermissionStatus(alwaysStatus);
+
       if (alwaysState === PermissionState.GRANTED) {
         completeNativePermissionRequest(
           Permission.LOCATION,
           PermissionState.GRANTED,
           LocationPermissionGrantLevel.ALWAYS,
         );
-        return true;
+        return;
       }
 
       completeNativePermissionRequest(
@@ -240,16 +228,11 @@ export function PermissionsPrompt({ warningButtonPosition }: PermissionsPromptPr
         PermissionState.GRANTED,
         LocationPermissionGrantLevel.WHILE_IN_USE,
       );
-      return true;
+      return;
     }
 
     if (permissions.location.locationGrantLevel === LocationPermissionGrantLevel.WHILE_IN_USE) {
-      let backgroundStatus: PermissionStatus;
-      try {
-        backgroundStatus = await request(PERMISSIONS.ANDROID.ACCESS_BACKGROUND_LOCATION);
-      } catch {
-        return false;
-      }
+      const backgroundStatus: PermissionStatus = await request(PERMISSIONS.ANDROID.ACCESS_BACKGROUND_LOCATION);
       const backgroundState = getPermissionStateFromPermissionStatus(backgroundStatus);
 
       completeNativePermissionRequest(
@@ -259,29 +242,18 @@ export function PermissionsPrompt({ warningButtonPosition }: PermissionsPromptPr
           ? LocationPermissionGrantLevel.ALWAYS
           : LocationPermissionGrantLevel.WHILE_IN_USE,
       );
-      return true;
+      return;
     }
 
-    let fineStatus: PermissionStatus;
-    try {
-      fineStatus = await request(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION);
-    } catch {
-      return false;
-    }
+    const fineStatus: PermissionStatus = await request(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION);
     const fineState = getPermissionStateFromPermissionStatus(fineStatus);
 
     if (fineState !== PermissionState.GRANTED) {
       completeNativePermissionRequest(Permission.LOCATION, fineState, LocationPermissionGrantLevel.NONE);
-      return true;
+      return;
     }
 
-    let backgroundStatus: PermissionStatus;
-    try {
-      backgroundStatus = await request(PERMISSIONS.ANDROID.ACCESS_BACKGROUND_LOCATION);
-    } catch {
-      return false;
-    }
-
+    const backgroundStatus: PermissionStatus = await request(PERMISSIONS.ANDROID.ACCESS_BACKGROUND_LOCATION);
     const backgroundState = getPermissionStateFromPermissionStatus(backgroundStatus);
 
     completeNativePermissionRequest(
@@ -291,73 +263,55 @@ export function PermissionsPrompt({ warningButtonPosition }: PermissionsPromptPr
         ? LocationPermissionGrantLevel.ALWAYS
         : LocationPermissionGrantLevel.WHILE_IN_USE,
     );
-    return true;
   }, [completeNativePermissionRequest, permissions.location.locationGrantLevel]);
 
-  const requestCameraPermission = useCallback(async (): Promise<boolean> => {
+  const requestCameraPermission = useCallback(async (): Promise<void> => {
     const permission = Platform.OS === 'ios' ? PERMISSIONS.IOS.CAMERA : PERMISSIONS.ANDROID.CAMERA;
-    let permissionStatus: PermissionStatus;
-    try {
-      permissionStatus = await request(permission);
-    } catch {
-      return false;
-    }
-
+    const permissionStatus: PermissionStatus = await request(permission);
     const nextPermissionState = getPermissionStateFromPermissionStatus(permissionStatus);
 
     completeNativePermissionRequest(Permission.CAMERA, nextPermissionState);
-    return true;
   }, [completeNativePermissionRequest]);
 
-  const requestPushNotificationsPermission = useCallback(async (): Promise<boolean> => {
+  const requestPushNotificationsPermission = useCallback(async (): Promise<void> => {
     let permissionStatus: PermissionStatus;
     try {
       permissionStatus = (await requestNotifications(['alert', 'badge', 'sound'])).status;
     } catch {
-      return false;
+      return;
     }
     const nextPermissionState = getPermissionStateFromPermissionStatus(permissionStatus);
 
     completeNativePermissionRequest(Permission.PUSH_NOTIFICATIONS, nextPermissionState);
-    return true;
   }, [completeNativePermissionRequest]);
 
-  const requestTrackingPermission = useCallback(async (): Promise<boolean> => {
+  const requestTrackingPermission = useCallback(async (): Promise<void> => {
     if (Platform.OS === 'android') {
-      return false;
+      return;
     }
     const permission = PERMISSIONS.IOS.APP_TRACKING_TRANSPARENCY;
-    let permissionStatus: PermissionStatus;
-    try {
-      permissionStatus = await request(permission);
-    } catch {
-      return false;
-    }
+    const permissionStatus = await request(permission);
     const nextPermissionState = getPermissionStateFromPermissionStatus(permissionStatus);
 
     completeNativePermissionRequest(Permission.TRACKING, nextPermissionState);
-    return true;
   }, [completeNativePermissionRequest]);
 
   const handleRequest = useCallback(
     async (permission: Permission): Promise<void> => {
-      let updated = false;
       if (permission === Permission.LOCATION) {
-        updated = await requestLocationPermission();
+        await requestLocationPermission();
       } else if (permission === Permission.CAMERA) {
-        updated = await requestCameraPermission();
+        await requestCameraPermission();
       } else if (permission === Permission.PUSH_NOTIFICATIONS) {
-        updated = await requestPushNotificationsPermission();
+        await requestPushNotificationsPermission();
       } else if (permission === Permission.TRACKING) {
-        updated = await requestTrackingPermission();
+        await requestTrackingPermission();
       }
 
-      if (!updated) {
-        updatePermission(permission, (currentPermission) => ({
-          ...currentPermission,
-          requested: true,
-        }));
-      }
+      updatePermission(permission, (currentPermission) => ({
+        ...currentPermission,
+        requested: true,
+      }));
     },
     [
       requestCameraPermission,
