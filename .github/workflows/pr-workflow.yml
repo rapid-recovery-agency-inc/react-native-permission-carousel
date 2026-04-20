@@ -46,7 +46,7 @@ jobs:
         run: npm run typecheck
 
       - name: Run format check
-        run: npm run format:check
+        run: npm run format-check
 
       - name: Run tests
         if: github.event.pull_request.draft == false
