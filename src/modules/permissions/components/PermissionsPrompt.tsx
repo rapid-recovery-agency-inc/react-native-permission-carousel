@@ -150,6 +150,7 @@ export function PermissionsPrompt({ warningButtonPosition }: PermissionsPromptPr
             PermissionState.GRANTED,
             LocationPermissionGrantLevel.ALWAYS,
           );
+          return true;
         }
 
         completeNativePermissionRequest(
@@ -157,6 +158,7 @@ export function PermissionsPrompt({ warningButtonPosition }: PermissionsPromptPr
           PermissionState.GRANTED,
           LocationPermissionGrantLevel.WHILE_IN_USE,
         );
+        return true;
       }
 
       let whenInUseStatus: PermissionStatus;
@@ -166,9 +168,9 @@ export function PermissionsPrompt({ warningButtonPosition }: PermissionsPromptPr
         return false;
       }
       const whenInUseState = getPermissionStateFromPermissionStatus(whenInUseStatus);
-
       if (whenInUseState !== PermissionState.GRANTED) {
         completeNativePermissionRequest(Permission.LOCATION, whenInUseState, LocationPermissionGrantLevel.NONE);
+        return true;
       }
 
       let alwaysStatus: PermissionStatus;
@@ -178,13 +180,13 @@ export function PermissionsPrompt({ warningButtonPosition }: PermissionsPromptPr
         return false;
       }
       const alwaysState = getPermissionStateFromPermissionStatus(alwaysStatus);
-
       if (alwaysState === PermissionState.GRANTED) {
         completeNativePermissionRequest(
           Permission.LOCATION,
           PermissionState.GRANTED,
           LocationPermissionGrantLevel.ALWAYS,
         );
+        return true;
       }
 
       completeNativePermissionRequest(
@@ -192,6 +194,7 @@ export function PermissionsPrompt({ warningButtonPosition }: PermissionsPromptPr
         PermissionState.GRANTED,
         LocationPermissionGrantLevel.WHILE_IN_USE,
       );
+      return true;
     }
 
     if (permissions.location.locationGrantLevel === LocationPermissionGrantLevel.WHILE_IN_USE) {
@@ -223,6 +226,7 @@ export function PermissionsPrompt({ warningButtonPosition }: PermissionsPromptPr
 
     if (fineState !== PermissionState.GRANTED) {
       completeNativePermissionRequest(Permission.LOCATION, fineState, LocationPermissionGrantLevel.NONE);
+      return true;
     }
 
     let backgroundStatus: PermissionStatus;
