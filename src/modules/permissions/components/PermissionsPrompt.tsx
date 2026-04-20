@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 import { PERMISSIONS, PermissionStatus, request, requestNotifications } from 'react-native-permissions';
 
@@ -12,8 +12,8 @@ import {
 } from '../types';
 import { getPermissionStateFromPermissionStatus } from '../utils';
 
-import { PermissionsWarning } from './PermissionsWarning';
 import { PermissionsCarousel } from './PermissionsCarousel';
+import { PermissionsWarning } from './PermissionsWarning';
 
 type PermissionsCarouselRequest = NonNullable<
   React.ComponentProps<typeof PermissionsCarousel>['requests']
@@ -52,6 +52,24 @@ export function PermissionsPrompt({ warningButtonPosition }: PermissionsPromptPr
     [permissions],
   );
 
+  const frozenRequestsSnapshotKey = useMemo(
+    () =>
+      frozenRequests
+        .map(({ permission }) => permission)
+        .sort()
+        .join('|'),
+    [frozenRequests],
+  );
+
+  const nextFrozenRequestsSnapshotKey = useMemo(
+    () =>
+      nextFrozenRequests
+        .map(({ permission }) => permission)
+        .sort()
+        .join('|'),
+    [nextFrozenRequests],
+  );
+
   const requiredPermissions = Object.keys(permissions).reduce((acc, key) => {
     if (permissions[key as keyof Permissions]?.required) {
       acc[key as keyof Permissions] = permissions[key as keyof Permissions];
@@ -76,12 +94,40 @@ export function PermissionsPrompt({ warningButtonPosition }: PermissionsPromptPr
     return acc;
   }, {} as Partial<Permissions>);
 
-  // Start a new prompt cycle: snapshot nextFrozenRequests during render when no cycle is active.
-  // This follows React's "adjust state when inputs change" pattern (react.dev/learn/you-might-not-need-an-effect)
-  // and avoids calling setState inside an effect body.
-  if (initialised && frozenRequests.length === 0 && nextFrozenRequests.length > 0) {
+  useEffect(() => {
+    if (!initialised) {
+      return;
+    }
+
+    const hasCompletedCycle = frozenRequests.length > 0 && handledPermissions.size >= frozenRequests.length;
+
+    if (hasCompletedCycle) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setFrozenRequests([]);
+      setHandledPermissions(new Set());
+      handledPermissionsRef.current = new Set();
+      return;
+    }
+
+    if (frozenRequests.length > 0) {
+      return;
+    }
+
+    if (nextFrozenRequests.length === 0 || nextFrozenRequestsSnapshotKey === frozenRequestsSnapshotKey) {
+      return;
+    }
+
+    setHandledPermissions(new Set());
+    handledPermissionsRef.current = new Set();
     setFrozenRequests(nextFrozenRequests);
-  }
+  }, [
+    frozenRequests.length,
+    frozenRequestsSnapshotKey,
+    handledPermissions.size,
+    initialised,
+    nextFrozenRequests,
+    nextFrozenRequestsSnapshotKey,
+  ]);
 
   const updatePermission = useCallback(
     (
@@ -322,22 +368,14 @@ export function PermissionsPrompt({ warningButtonPosition }: PermissionsPromptPr
     ],
   );
 
-  const markHandled = useCallback(
-    (permission: Permission): void => {
-      const next = new Set(handledPermissionsRef.current);
+  const markHandled = useCallback((permission: Permission): void => {
+    setHandledPermissions((prev) => {
+      const next = new Set(prev);
       next.add(permission);
       handledPermissionsRef.current = next;
-
-      if (frozenRequests.length > 0 && next.size >= frozenRequests.length) {
-        handledPermissionsRef.current = new Set();
-        setFrozenRequests([]);
-        setHandledPermissions(new Set());
-      } else {
-        setHandledPermissions(next);
-      }
-    },
-    [frozenRequests.length],
-  );
+      return next;
+    });
+  }, []);
 
   const handleAccept = useCallback(
     async (permission: Permission): Promise<void> => {
