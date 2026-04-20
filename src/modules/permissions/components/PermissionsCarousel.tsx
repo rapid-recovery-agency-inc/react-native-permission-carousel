@@ -9,6 +9,7 @@ import {
   useThemedStyles,
   createThemeStyleSheet,
   MainModal,
+  ModalProvider,
 } from '@rapid-recovery-agency-inc/sloth-ui-mobile';
 
 export interface PermissionRequest {
@@ -92,67 +93,69 @@ export const PermissionsCarousel = ({
   };
 
   return (
-    <MainModal mode="full" isVisible={isVisible} maxHeightRatio={1} includeKeyboardController={false}>
-      <View style={styles.modalContent}>
-        <View style={styles.carouselViewport}>
-          <Animated.View
-            style={[
-              styles.carouselTrack,
-              {
-                width: width * requests.length,
-                transform: [{ translateX }],
-              },
-            ]}
-          >
-            {requests?.map(({ title, description, iconName }, index) => (
-              <View style={[styles.slide, { width }]} key={`${description}-${index}`}>
-                <View style={styles.main}>
-                  {iconName ? (
-                    <View style={styles.iconOuterCircle}>
-                      <View style={styles.iconInnerCircle}>
-                        <Icon iconName={iconName} themeColor="fgAlwaysWhite" size={48} />
+    <ModalProvider>
+      <MainModal mode="full" isVisible={isVisible} maxHeightRatio={1} includeKeyboardController={false}>
+        <View style={styles.modalContent}>
+          <View style={styles.carouselViewport}>
+            <Animated.View
+              style={[
+                styles.carouselTrack,
+                {
+                  width: width * requests.length,
+                  transform: [{ translateX }],
+                },
+              ]}
+            >
+              {requests?.map(({ title, description, iconName }, index) => (
+                <View style={[styles.slide, { width }]} key={`${description}-${index}`}>
+                  <View style={styles.main}>
+                    {iconName ? (
+                      <View style={styles.iconOuterCircle}>
+                        <View style={styles.iconInnerCircle}>
+                          <Icon iconName={iconName} themeColor="fgAlwaysWhite" size={48} />
+                        </View>
                       </View>
+                    ) : undefined}
+                    <View style={styles.textContainer}>
+                      <MainText type="BLACK_XL" textAlign="center">
+                        {title ?? 'Permission Needed'}
+                      </MainText>
+                      <MainText type="BOOK_SM" themeColor="fgSecondary" textAlign="center">
+                        {description}
+                      </MainText>
                     </View>
-                  ) : undefined}
-                  <View style={styles.textContainer}>
-                    <MainText type="BLACK_XL" textAlign="center">
-                      {title ?? 'Permission Needed'}
-                    </MainText>
-                    <MainText type="BOOK_SM" themeColor="fgSecondary" textAlign="center">
-                      {description}
-                    </MainText>
-                  </View>
-                  <View style={styles.paginationContainer}>
-                    {requests?.map((_, index) => (
-                      <View
-                        key={index}
-                        style={[styles.paginationDot, index === slideIndex ? styles.paginationDotActive : {}]}
-                      />
-                    ))}
+                    <View style={styles.paginationContainer}>
+                      {requests?.map((_, index) => (
+                        <View
+                          key={index}
+                          style={[styles.paginationDot, index === slideIndex ? styles.paginationDotActive : {}]}
+                        />
+                      ))}
+                    </View>
                   </View>
                 </View>
-              </View>
-            ))}
-          </Animated.View>
-        </View>
-        {currentRequest ? (
-          <View style={styles.footer}>
-            <Button
-              text={acceptButtonText || 'Okay'}
-              fullWidth={false}
-              onPress={handleAccept}
-              disabled={isAnimating || pending}
-            />
-            <Button
-              text={rejectButtonText || 'Skip'}
-              variant="transparent"
-              onPress={handleReject}
-              disabled={isAnimating || pending}
-            />
+              ))}
+            </Animated.View>
           </View>
-        ) : null}
-      </View>
-    </MainModal>
+          {currentRequest ? (
+            <View style={styles.footer}>
+              <Button
+                text={acceptButtonText || 'Okay'}
+                fullWidth={false}
+                onPress={handleAccept}
+                disabled={isAnimating || pending}
+              />
+              <Button
+                text={rejectButtonText || 'Skip'}
+                variant="transparent"
+                onPress={handleReject}
+                disabled={isAnimating || pending}
+              />
+            </View>
+          ) : null}
+        </View>
+      </MainModal>
+    </ModalProvider>
   );
 };
 
