@@ -124,6 +124,10 @@ export interface Permissions {
   tracking: PermissionConfig;
 }
 
+export type PartialPermissions = {
+  [K in keyof Permissions]?: Permissions[K];
+};
+
 /**
  * WarningButtonPosition: A restricted style type for positioning the PermissionsWarning button.
  * Only layout/position properties are accepted — appearance cannot be overridden.

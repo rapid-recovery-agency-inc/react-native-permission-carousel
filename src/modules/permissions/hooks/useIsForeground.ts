@@ -33,6 +33,7 @@ export const useIsForeground = (): boolean => {
       subscriptions.forEach((subscription) => {
         subscription.remove();
       });
+      debouncedSetIsForeground.cancel();
     };
   }, [setIsForeground]);
 

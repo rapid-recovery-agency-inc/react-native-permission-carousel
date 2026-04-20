@@ -5,8 +5,15 @@ import { AppState, Platform } from 'react-native';
 
 import { useIsForeground } from '../useIsForeground';
 
+let mockCancel: jest.Mock;
+
 jest.mock('lodash', () => ({
-  debounce: (fn: (...args: unknown[]) => void) => fn,
+  debounce: (fn: (...args: unknown[]) => void) => {
+    mockCancel = jest.fn();
+    const debounced = fn as ((...args: unknown[]) => void) & { cancel: jest.Mock };
+    debounced.cancel = mockCancel;
+    return debounced;
+  },
 }));
 
 jest.mock('react-native', () => {
@@ -47,51 +54,81 @@ describe('useIsForeground', () => {
     (AppState.addEventListener as jest.Mock).mockReset();
   });
 
-  it('should register change listener on iOS and update foreground state', () => {
-    const { result } = renderHook(() => useIsForeground());
+  describe('iOS behavior', () => {
+    it('should register change listener on iOS and update foreground state', () => {
+      const { result } = renderHook(() => useIsForeground());
 
-    expect(AppState.addEventListener).toHaveBeenCalledTimes(1);
-    expect(AppState.addEventListener).toHaveBeenCalledWith('change', expect.any(Function));
-    expect(result.current).toBe(true);
+      expect(AppState.addEventListener).toHaveBeenCalledTimes(1);
+      expect(AppState.addEventListener).toHaveBeenCalledWith('change', expect.any(Function));
+      expect(result.current).toBe(true);
 
-    act(() => {
-      handlers.get('change')?.('background');
+      act(() => {
+        handlers.get('change')?.('background');
+      });
+
+      expect(result.current).toBe(false);
+
+      act(() => {
+        handlers.get('change')?.('active');
+      });
+
+      expect(result.current).toBe(true);
     });
 
-    expect(result.current).toBe(false);
+    it('should call debouncedSetIsForeground.cancel on cleanup for iOS', () => {
+      const { unmount } = renderHook(() => useIsForeground());
 
-    act(() => {
-      handlers.get('change')?.('active');
+      expect(mockCancel).not.toHaveBeenCalled();
+
+      act(() => {
+        unmount();
+      });
+
+      expect(mockCancel).toHaveBeenCalledTimes(1);
     });
-
-    expect(result.current).toBe(true);
   });
 
-  it('should register focus and blur listeners on Android and clean up subscriptions', () => {
-    (Platform as { OS: string }).OS = 'android';
+  describe('Android behavior', () => {
+    it('should register focus and blur listeners on Android and clean up subscriptions', () => {
+      (Platform as { OS: string }).OS = 'android';
 
-    const { result, unmount } = renderHook(() => useIsForeground());
+      const { result, unmount } = renderHook(() => useIsForeground());
 
-    expect(AppState.addEventListener).toHaveBeenCalledTimes(2);
-    expect(AppState.addEventListener).toHaveBeenNthCalledWith(1, 'focus', expect.any(Function));
-    expect(AppState.addEventListener).toHaveBeenNthCalledWith(2, 'blur', expect.any(Function));
+      expect(AppState.addEventListener).toHaveBeenCalledTimes(2);
+      expect(AppState.addEventListener).toHaveBeenNthCalledWith(1, 'focus', expect.any(Function));
+      expect(AppState.addEventListener).toHaveBeenNthCalledWith(2, 'blur', expect.any(Function));
 
-    act(() => {
-      handlers.get('blur')?.();
+      act(() => {
+        handlers.get('blur')?.();
+      });
+      expect(result.current).toBe(false);
+
+      act(() => {
+        handlers.get('focus')?.();
+      });
+      expect(result.current).toBe(true);
+
+      act(() => {
+        unmount();
+      });
+
+      expect(removeMocks).toHaveLength(2);
+      expect(removeMocks[0]).toHaveBeenCalledTimes(1);
+      expect(removeMocks[1]).toHaveBeenCalledTimes(1);
     });
-    expect(result.current).toBe(false);
 
-    act(() => {
-      handlers.get('focus')?.();
+    it('should call debouncedSetIsForeground.cancel on cleanup for Android', () => {
+      (Platform as { OS: string }).OS = 'android';
+
+      const { unmount } = renderHook(() => useIsForeground());
+
+      expect(mockCancel).not.toHaveBeenCalled();
+
+      act(() => {
+        unmount();
+      });
+
+      expect(mockCancel).toHaveBeenCalledTimes(1);
     });
-    expect(result.current).toBe(true);
-
-    act(() => {
-      unmount();
-    });
-
-    expect(removeMocks).toHaveLength(2);
-    expect(removeMocks[0]).toHaveBeenCalledTimes(1);
-    expect(removeMocks[1]).toHaveBeenCalledTimes(1);
   });
 });
