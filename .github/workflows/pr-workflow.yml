@@ -9,7 +9,7 @@ env:
 
 jobs:
   pr-checks:
-    name: Format, Lint, Build, Test
+    name: Format, Lint, Typecheck, Test
     runs-on: ubuntu-latest
 
     permissions:
@@ -67,10 +67,6 @@ jobs:
           npm version --no-git-tag-version "$NEW_VERSION"
           echo "new_version=$NEW_VERSION" >> $GITHUB_ENV
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-
-      - name: Build
-        if: github.event.pull_request.draft == false
-        run: npm run build
 
       - name: Publish pre-release
         if: github.event.pull_request.draft == false

@@ -275,7 +275,6 @@ This project uses [Husky](https://typicode.github.io/husky/) to enforce quality 
 
 | Script                 | Description                                                                   |
 | ---------------------- | ----------------------------------------------------------------------------- |
-| `npm run build`        | Compiles TypeScript source files.                                             |
 | `npm run lint`         | Runs ESLint across the `src` directory.                                       |
 | `npm run lint-fix`     | Runs ESLint and automatically fixes issues where possible.                    |
 | `npm run format`       | Formats source files with Prettier.                                           |
