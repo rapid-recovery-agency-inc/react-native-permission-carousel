@@ -1,0 +1,33 @@
+# Node.js
+node_modules/
+.npmrc
+
+# React Native
+android/
+ios/
+*.keystore
+
+# VSCode
+.vscode/
+
+# Logs
+*.log
+
+# Environment variables
+.env
+.env.*
+
+# Build output 
+build/
+dist/
+coverage/
+
+# Misc
+*.swp
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# SO
+.DS_Store*
+
