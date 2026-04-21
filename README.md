@@ -51,17 +51,17 @@ npm install @rapid-recovery-agency-inc/react-native-permission-carousel
 
 This package relies on peer dependencies provided by your app. They are not bundled with this library, and your app must satisfy these versions:
 
-| Package                                              | Version              |
-| ---------------------------------------------------- | -------------------- |
-| `@rapid-recovery-agency-inc/sloth-ui-mobile`        | `^1.272.0`           |
-| `@react-native-async-storage/async-storage`          | `^2.0.0`             |
-| `i18next`                                            | `>=23.0.0`           |
-| `react`                                              | `>=18.2.0 <20.0.0`   |
-| `react-native`                                       | `>=0.71.16 <=0.81.4` |
-| `react-native-gesture-handler`                       | `>=2.10.0`           |
-| `react-native-permissions`                           | `^5.5.1`             |
-| `react-native-reanimated`                            | `>=3.4.2`            |
-| `react-native-reanimated-carousel`                   | `^4.0.2`             |
+| Package                                      | Version              |
+| -------------------------------------------- | -------------------- |
+| `@rapid-recovery-agency-inc/sloth-ui-mobile` | `^1.272.0`           |
+| `@react-native-async-storage/async-storage`  | `^2.0.0`             |
+| `i18next`                                    | `>=23.0.0`           |
+| `react`                                      | `>=18.2.0 <20.0.0`   |
+| `react-native`                               | `>=0.71.16 <=0.81.4` |
+| `react-native-gesture-handler`               | `>=2.10.0`           |
+| `react-native-permissions`                   | `^5.5.1`             |
+| `react-native-reanimated`                    | `>=3.4.2`            |
+| `react-native-reanimated-carousel`           | `^4.0.2`             |
 
 If you are using `npm` v7+, peer dependencies are installed automatically in many cases. If not, install them manually:
 
