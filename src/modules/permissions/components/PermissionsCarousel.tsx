@@ -117,10 +117,10 @@ export const PermissionsCarousel = ({
                       </View>
                     ) : undefined}
                     <View style={styles.textContainer}>
-                      <MainText type="BLACK_XL" textAlign="center">
+                      <MainText size={20} weight="black" textAlign="center">
                         {title ?? 'Permission Needed'}
                       </MainText>
-                      <MainText type="BOOK_SM" themeColor="fgSecondary" textAlign="center">
+                      <MainText size={14} weight="book" themeColor="fgSecondary" textAlign="center">
                         {description}
                       </MainText>
                     </View>

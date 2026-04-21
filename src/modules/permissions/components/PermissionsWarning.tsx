@@ -33,15 +33,27 @@ export function PermissionsWarning({
         }}
       >
         <View style={styles.container}>
-          <MainText type="BOOK_SM">{t('permissions:missing.intro.message1')}</MainText>
-          <MainText type="BOOK_SM">{t('permissions:missing.intro.message2')}</MainText>
-          <MainText type="BOOK_SM">{t('permissions:missing.intro.message3')}</MainText>
+          <MainText size={14} weight="book">
+            {t('permissions:missing.intro.message1')}
+          </MainText>
+          <MainText size={14} weight="book">
+            {t('permissions:missing.intro.message2')}
+          </MainText>
+          <MainText size={14} weight="book">
+            {t('permissions:missing.intro.message3')}
+          </MainText>
           {Object.entries(missingPermissions)?.map(([key, missingPermission]) => (
             <View key={key} style={styles.content}>
-              <MainText type="BOLD_SM">{missingPermission.warningTitle}</MainText>
-              <MainText type="BOOK_SM">{missingPermission.warningMessage1}</MainText>
+              <MainText size={14} weight="bold">
+                {missingPermission.warningTitle}
+              </MainText>
+              <MainText size={14} weight="book">
+                {missingPermission.warningMessage1}
+              </MainText>
               {missingPermission.warningMessage2 !== undefined ? (
-                <MainText type="BOOK_SM">{missingPermission.warningMessage2}</MainText>
+                <MainText size={14} weight="book">
+                  {missingPermission.warningMessage2}
+                </MainText>
               ) : undefined}
               {missingPermission.requested ? (
                 <TouchableOpacity
@@ -50,7 +62,7 @@ export function PermissionsWarning({
                     await openSettings('application');
                   }}
                 >
-                  <MainText type="BOOK_SM" themeColor="uiBrandSolid">
+                  <MainText size={14} weight="book" themeColor="uiBrandSolid">
                     {t(`permissions:missing.actions.openSettings`)}
                   </MainText>
                 </TouchableOpacity>
@@ -61,7 +73,7 @@ export function PermissionsWarning({
                     await onRequestPermission(key as Permission);
                   }}
                 >
-                  <MainText type="BOOK_SM" themeColor="uiBrandSolid">
+                  <MainText size={14} weight="book" themeColor="uiBrandSolid">
                     {t(`permissions:missing.actions.request`)}
                   </MainText>
                 </TouchableOpacity>
