@@ -49,14 +49,25 @@ npm install @rapid-recovery-agency-inc/react-native-permission-carousel
 
 ### Peer Dependencies
 
-The following peer dependencies must be installed in your project:
+This package relies on peer dependencies provided by your app. They are not bundled with this library, and your app must satisfy these versions:
 
-| Package                    | Version              |
-| -------------------------- | -------------------- |
-| `react`                    | `>=18.2.0 <20.0.0`   |
-| `react-native`             | `>=0.71.16 <=0.81.4` |
-| `react-native-permissions` | `^5.5.1`             |
-| `i18next`                  | `>=23.0.0`           |
+| Package                                              | Version              |
+| ---------------------------------------------------- | -------------------- |
+| `@rapid-recovery-agency-inc/sloth-ui-mobile`        | `^1.272.0`           |
+| `@react-native-async-storage/async-storage`          | `^2.0.0`             |
+| `i18next`                                            | `>=23.0.0`           |
+| `react`                                              | `>=18.2.0 <20.0.0`   |
+| `react-native`                                       | `>=0.71.16 <=0.81.4` |
+| `react-native-gesture-handler`                       | `>=2.10.0`           |
+| `react-native-permissions`                           | `^5.5.1`             |
+| `react-native-reanimated`                            | `>=3.4.2`            |
+| `react-native-reanimated-carousel`                   | `^4.0.2`             |
+
+If you are using `npm` v7+, peer dependencies are installed automatically in many cases. If not, install them manually:
+
+```bash
+npm install @rapid-recovery-agency-inc/sloth-ui-mobile @react-native-async-storage/async-storage i18next react react-native react-native-gesture-handler react-native-permissions react-native-reanimated react-native-reanimated-carousel
+```
 
 Refer to the [`react-native-permissions` setup guide](https://github.com/zoontek/react-native-permissions) for platform-specific configuration (iOS `Info.plist` entries and Android `AndroidManifest.xml` permissions).
 
