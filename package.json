@@ -71,7 +71,7 @@
     "vite": "^6.0.0"
   },
   "peerDependencies": {
-    "@rapid-recovery-agency-inc/sloth-ui-mobile": "^1.268.0",
+    "@rapid-recovery-agency-inc/sloth-ui-mobile": "^1.272.0",
     "@react-native-async-storage/async-storage": "^2.0.0",
     "i18next": ">=23.0.0",
     "react": ">=18.2.0 <20.0.0",
