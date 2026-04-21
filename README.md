@@ -4,6 +4,12 @@ A reusable permission management library for React Native applications. It provi
 
 ---
 
+## Demo 
+
+https://github.com/user-attachments/assets/93ae353b-f19d-49a3-b09d-82031d8852c9
+
+---
+
 ## Table of Contents
 
 - [Consuming the Library](#consuming-the-library)
