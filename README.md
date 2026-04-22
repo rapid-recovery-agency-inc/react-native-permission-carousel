@@ -4,7 +4,7 @@ A reusable permission management library for React Native applications. It provi
 
 ---
 
-## Demo 
+## Demo
 
 https://github.com/user-attachments/assets/93ae353b-f19d-49a3-b09d-82031d8852c9
 
@@ -251,6 +251,327 @@ Translations are registered under the `permissions` namespace, exported as `PERM
 | `LocationPermissionGrantLevel` | Enum for location grant levels: `NONE`, `WHILE_IN_USE`, `ALWAYS`.                           |
 | `PermissionConfig`             | Interface describing the configuration for a single permission.                             |
 | `Permissions`                  | Interface describing the full permissions configuration object.                             |
+
+---
+
+## Supported Permissions
+
+The library currently supports the following permissions:
+
+| Permission             | iOS | Android | Grant Levels                         | Notes                                                                                                         |
+| ---------------------- | --- | ------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| **LOCATION**           | ✅  | ✅      | `NONE`, `WHILE_IN_USE`, `ALWAYS`     | iOS: Requests "When In Use" first, then "Always" if needed. Android: Requests FINE location, then BACKGROUND. |
+| **CAMERA**             | ✅  | ✅      | N/A (binary: granted/denied/blocked) | Standard camera access for photo/video capture.                                                               |
+| **PUSH_NOTIFICATIONS** | ✅  | ✅      | N/A (binary: granted/denied/blocked) | Requests alert, badge, and sound permissions.                                                                 |
+| **TRACKING**           | ✅  | ❌      | N/A (binary: granted/denied/blocked) | iOS App Tracking Transparency (ATT). Not applicable to Android.                                               |
+
+---
+
+## Available Permissions (Not Yet Implemented)
+
+The following permissions are commonly used in mobile apps but are not yet implemented in this library. They can be added following the guide in the next section:
+
+| Permission            | iOS | Android | Use Case                                             |
+| --------------------- | --- | ------- | ---------------------------------------------------- |
+| **CONTACTS**          | ✅  | ✅      | Access user's contact list and contact information.  |
+| **CALENDAR**          | ✅  | ✅      | Read/write calendar events and reminders.            |
+| **PHOTOS**            | ✅  | ✅      | Access photo library and create/modify albums.       |
+| **MICROPHONE**        | ✅  | ✅      | Record audio and capture sound input.                |
+| **BLUETOOTH**         | ✅  | ✅      | Connect to Bluetooth devices.                        |
+| **HEALTH**            | ✅  | ✅      | Access health and fitness data.                      |
+| **LOCATION_SERVICES** | ✅  | ✅      | Precise location using GPS or nearby item detection. |
+| **FILE_STORAGE**      | ❌  | ✅      | Access external storage on Android.                  |
+| **MEDIA_LIBRARY**     | ✅  | ✅      | Access music, videos, and media files.               |
+
+---
+
+## Adding a New Permission
+
+This section provides a step-by-step guide for adding a new permission to the library. We'll use **MICROPHONE** as an example.
+
+### Step 1: Add the Permission to the Enum
+
+Open [src/modules/permissions/types.ts](src/modules/permissions/types.ts) and add the new permission to the `Permission` enum:
+
+```typescript
+export enum Permission {
+  TRACKING = 'tracking',
+  LOCATION = 'location',
+  CAMERA = 'camera',
+  PUSH_NOTIFICATIONS = 'pushNotifications',
+  MICROPHONE = 'microphone', // Add this line
+}
+```
+
+### Step 2: Extend the Permissions Interface
+
+In the same file, update the `Permissions` interface to include the new permission configuration:
+
+```typescript
+export interface Permissions {
+  location: PermissionConfig;
+  camera: PermissionConfig;
+  pushNotifications: PermissionConfig;
+  tracking: PermissionConfig;
+  microphone: PermissionConfig; // Add this line
+}
+```
+
+### Step 3: Add Permission Request Logic
+
+Open [src/modules/permissions/components/PermissionsProvider.tsx](src/modules/permissions/components/PermissionsProvider.tsx) and add a permission check function. Find the existing check functions (like `checkCameraPermission`) and add one for your permission:
+
+```typescript
+const checkMicrophonePermission = useCallback(async (): Promise<void> => {
+  const permission = Platform.OS === 'ios' ? PERMISSIONS.IOS.MICROPHONE : PERMISSIONS.ANDROID.RECORD_AUDIO;
+  const permissionStatus = await check(permission);
+  const nextPermissionState = getPermissionStateFromPermissionStatus(permissionStatus);
+
+  if (permissions.microphone.permissionState === nextPermissionState) {
+    return;
+  }
+
+  updatePermission(Permission.MICROPHONE, (currentPermission) => ({
+    ...currentPermission,
+    permissionState: nextPermissionState,
+  }));
+}, [permissions.microphone, updatePermission]);
+```
+
+Then add this check to the initialization effect:
+
+```typescript
+useEffect(() => {
+  // ... existing checks ...
+  checkMicrophonePermission();
+}, [checkMicrophonePermission, isForeground]);
+```
+
+### Step 4: Add Permission Request Handler
+
+Open [src/modules/permissions/components/PermissionsPrompt.tsx](src/modules/permissions/components/PermissionsPrompt.tsx) and add a request function. Find the existing request functions (like `requestCameraPermission`) and add one for your permission:
+
+```typescript
+const requestMicrophonePermission = useCallback(async (): Promise<void> => {
+  const permission = Platform.OS === 'ios' ? PERMISSIONS.IOS.MICROPHONE : PERMISSIONS.ANDROID.RECORD_AUDIO;
+  const permissionStatus: PermissionStatus = await request(permission);
+  const nextPermissionState = getPermissionStateFromPermissionStatus(permissionStatus);
+
+  completeNativePermissionRequest(Permission.MICROPHONE, nextPermissionState);
+}, [completeNativePermissionRequest]);
+```
+
+Then add a case to the `handleRequest` function:
+
+```typescript
+const handleRequest = useCallback(
+  async (permission: Permission): Promise<void> => {
+    if (permission === Permission.LOCATION) {
+      await requestLocationPermission();
+    } else if (permission === Permission.CAMERA) {
+      await requestCameraPermission();
+    } else if (permission === Permission.PUSH_NOTIFICATIONS) {
+      await requestPushNotificationsPermission();
+    } else if (permission === Permission.TRACKING) {
+      await requestTrackingPermission();
+    } else if (permission === Permission.MICROPHONE) {
+      await requestMicrophonePermission(); // Add this
+    }
+
+    updatePermission(permission, (currentPermission) => ({
+      ...currentPermission,
+      requested: true,
+    }));
+  },
+  [
+    requestCameraPermission,
+    requestLocationPermission,
+    requestPushNotificationsPermission,
+    requestTrackingPermission,
+    requestMicrophonePermission, // Add this
+    updatePermission,
+  ],
+);
+```
+
+Don't forget to add `requestMicrophonePermission` to the dependencies array.
+
+### Step 5: Configure in Your App
+
+When setting up `PermissionsProvider` in your app, add the microphone permission configuration:
+
+```tsx
+import { PermissionsProvider, Permission } from '@rapid-recovery-agency-inc/react-native-permission-carousel';
+
+const APP_PERMISSIONS = {
+  location: {
+    title: 'Location',
+    description: 'We need access to your location to show nearby jobs.',
+    iconName: 'map-marker',
+    warningTitle: 'Location Disabled',
+    warningMessage1: 'Location access is required for this feature.',
+    warningMessage2: 'Please enable location access in your device settings.',
+    os: '*',
+    required: false,
+    prompt: false,
+    requested: false,
+    skipped: false,
+    permissionState: null,
+  },
+  microphone: {
+    title: 'Microphone',
+    description: 'We need microphone access to record your voice messages.',
+    iconName: 'microphone',
+    warningTitle: 'Microphone Disabled',
+    warningMessage1: 'Microphone access is required for voice recording.',
+    warningMessage2: 'Please enable microphone access in your device settings.',
+    os: '*', // Available on both iOS and Android
+    required: false,
+    prompt: false, // Only prompt when needed (e.g., on voice message screen)
+    requested: false,
+    skipped: false,
+    permissionState: null,
+  },
+  // ... other permissions
+};
+
+export default function App() {
+  return (
+    <PermissionsProvider permissions={APP_PERMISSIONS} permissionsStorageKey="@my-app/permissions">
+      {/* rest of your app */}
+    </PermissionsProvider>
+  );
+}
+```
+
+### Step 6: Request Permission Contextually (Optional)
+
+To request the permission only when a specific feature is used, use the `usePermissionsRequest` hook:
+
+```tsx
+import {
+  usePermissionsRequest,
+  Permission,
+  usePermissionsContext,
+} from '@rapid-recovery-agency-inc/react-native-permission-carousel';
+
+export default function VoiceMessageScreen() {
+  // Only prompt for microphone when this screen mounts
+  usePermissionsRequest(Permission.MICROPHONE);
+
+  const { hasPermission } = usePermissionsContext();
+
+  const handleRecordMessage = async () => {
+    if (hasPermission(Permission.MICROPHONE)) {
+      // Start recording
+    } else {
+      // Show error or guidance
+    }
+  };
+
+  return (
+    // ...
+  );
+}
+```
+
+### Step 7: Handle Platform-Specific Configuration
+
+Don't forget to configure your native projects:
+
+**iOS (Info.plist):**
+
+```xml
+<key>NSMicrophoneUsageDescription</key>
+<string>We need microphone access to record voice messages.</string>
+```
+
+**Android (AndroidManifest.xml):**
+
+```xml
+<uses-permission android:name="android.permission.RECORD_AUDIO" />
+```
+
+Refer to the [`react-native-permissions`](https://github.com/zoontek/react-native-permissions) documentation for the latest platform-specific setup requirements.
+
+### Complete Example: Adding CONTACTS Permission
+
+Here's a complete example of adding the **CONTACTS** permission:
+
+**1. types.ts:**
+
+```typescript
+export enum Permission {
+  TRACKING = 'tracking',
+  LOCATION = 'location',
+  CAMERA = 'camera',
+  PUSH_NOTIFICATIONS = 'pushNotifications',
+  CONTACTS = 'contacts',
+}
+
+export interface Permissions {
+  location: PermissionConfig;
+  camera: PermissionConfig;
+  pushNotifications: PermissionConfig;
+  tracking: PermissionConfig;
+  contacts: PermissionConfig;
+}
+```
+
+**2. PermissionsProvider.tsx (add check function):**
+
+```typescript
+const checkContactsPermission = useCallback(async (): Promise<void> => {
+  const permission = Platform.OS === 'ios' ? PERMISSIONS.IOS.CONTACTS : PERMISSIONS.ANDROID.READ_CONTACTS;
+  const permissionStatus = await check(permission);
+  const nextPermissionState = getPermissionStateFromPermissionStatus(permissionStatus);
+
+  if (permissions.contacts.permissionState === nextPermissionState) {
+    return;
+  }
+
+  updatePermission(Permission.CONTACTS, (currentPermission) => ({
+    ...currentPermission,
+    permissionState: nextPermissionState,
+  }));
+}, [permissions.contacts, updatePermission]);
+```
+
+**3. PermissionsPrompt.tsx (add request function):**
+
+```typescript
+const requestContactsPermission = useCallback(async (): Promise<void> => {
+  const permission = Platform.OS === 'ios' ? PERMISSIONS.IOS.CONTACTS : PERMISSIONS.ANDROID.READ_CONTACTS;
+  const permissionStatus: PermissionStatus = await request(permission);
+  const nextPermissionState = getPermissionStateFromPermissionStatus(permissionStatus);
+
+  completeNativePermissionRequest(Permission.CONTACTS, nextPermissionState);
+}, [completeNativePermissionRequest]);
+
+// Add to handleRequest:
+// else if (permission === Permission.CONTACTS) {
+//   await requestContactsPermission();
+// }
+```
+
+**4. App configuration:**
+
+```typescript
+contacts: {
+  title: 'Contacts',
+  description: 'Access your contacts to connect with friends and colleagues.',
+  iconName: 'address-book',
+  warningTitle: 'Contacts Access Disabled',
+  warningMessage1: 'Contacts access is needed to find your friends.',
+  warningMessage2: 'Enable contacts access in your device settings.',
+  os: '*',
+  required: false,
+  prompt: false,
+  requested: false,
+  skipped: false,
+  permissionState: null,
+}
+```
 
 ---
 
