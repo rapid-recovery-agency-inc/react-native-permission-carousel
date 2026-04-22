@@ -42,12 +42,14 @@ export const PermissionsContext = createContext<PermissionsContextValue>({
 
 export interface PermissionsProviderProps {
   children: ReactNode;
+  ready: boolean;
   permissions: Permissions;
   permissionsStorageKey?: string;
 }
 
 export function PermissionsProvider({
   children,
+  ready,
   permissions: _permissions,
   permissionsStorageKey = FALLBACK_STORAGE_KEY,
 }: PermissionsProviderProps): React.JSX.Element {
@@ -236,6 +238,10 @@ export function PermissionsProvider({
   }, [permissions.tracking, updatePermission]);
 
   useEffect(() => {
+    if (!ready) {
+      return;
+    }
+
     let isMounted = true;
 
     const hydratePermissions = async (): Promise<void> => {
@@ -299,10 +305,10 @@ export function PermissionsProvider({
     return () => {
       isMounted = false;
     };
-  }, [osPermissions, permissionsStorageKey]);
+  }, [osPermissions, permissionsStorageKey, ready]);
 
   useEffect(() => {
-    if (!hasHydratedPermissions) {
+    if (!ready || !hasHydratedPermissions) {
       return;
     }
 
@@ -324,10 +330,10 @@ export function PermissionsProvider({
     );
 
     void AsyncStorage.setItem(permissionsStorageKey, JSON.stringify(persistedPermissions));
-  }, [permissions, hasHydratedPermissions, permissionsStorageKey]);
+  }, [permissions, hasHydratedPermissions, permissionsStorageKey, ready]);
 
   useEffect(() => {
-    if (!hasHydratedPermissions || !isForeground) {
+    if (!ready || !hasHydratedPermissions || !isForeground) {
       return;
     }
 
@@ -342,7 +348,12 @@ export function PermissionsProvider({
     };
 
     void checkPermissions();
+
+    return () => {
+      setInitialised(false);
+    };
   }, [
+    ready,
     hasHydratedPermissions,
     isForeground,
     checkLocationPermission,

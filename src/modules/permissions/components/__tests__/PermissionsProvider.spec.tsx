@@ -129,7 +129,7 @@ describe('PermissionsProvider', () => {
       camera: createPermissionConfig({ title: 'Camera', os: 'android' }),
     });
 
-    const hook = await renderPermissionsProviderHook({ permissions, children: null });
+    const hook = await renderPermissionsProviderHook({ permissions, children: null, ready: true });
     const { result, unmount } = hook;
 
     await waitFor(() => {
@@ -163,7 +163,11 @@ describe('PermissionsProvider', () => {
       }),
     );
 
-    const hook = await renderPermissionsProviderHook({ permissions: createPermissions(), children: null });
+    const hook = await renderPermissionsProviderHook({
+      permissions: createPermissions(),
+      children: null,
+      ready: true,
+    });
     const { result, unmount } = hook;
 
     await waitFor(() => {
@@ -199,7 +203,11 @@ describe('PermissionsProvider', () => {
     });
     mockedCheckNotifications.mockResolvedValue({ status: 'granted' } as never);
 
-    const hook = await renderPermissionsProviderHook({ permissions: createPermissions(), children: null });
+    const hook = await renderPermissionsProviderHook({
+      permissions: createPermissions(),
+      children: null,
+      ready: true,
+    });
     const { result, unmount } = hook;
 
     await waitFor(() => {
@@ -237,7 +245,11 @@ describe('PermissionsProvider', () => {
   it('should prompt for a permission and clear the prompt', async () => {
     mockedUseIsForeground.mockReturnValue(false);
 
-    const hook = await renderPermissionsProviderHook({ permissions: createPermissions(), children: null });
+    const hook = await renderPermissionsProviderHook({
+      permissions: createPermissions(),
+      children: null,
+      ready: true,
+    });
     const { result, unmount } = hook;
 
     await waitFor(() => {
@@ -257,6 +269,29 @@ describe('PermissionsProvider', () => {
 
     expect(result.current.permissions.camera.required).toBe(false);
     expect(result.current.permissions.camera.prompt).toBe(false);
+
+    await act(async () => {
+      unmount();
+    });
+  });
+
+  it('should not hydrate, persist, or initialise while not ready', async () => {
+    mockedUseIsForeground.mockReturnValue(true);
+
+    const hook = await renderPermissionsProviderHook({
+      permissions: createPermissions(),
+      children: null,
+      ready: false,
+    });
+    const { result, unmount } = hook;
+
+    await flushEffects();
+
+    expect(mockedGetItem).not.toHaveBeenCalled();
+    expect(mockedSetItem).not.toHaveBeenCalled();
+    expect(mockedCheck).not.toHaveBeenCalled();
+    expect(mockedCheckNotifications).not.toHaveBeenCalled();
+    expect(result.current.initialised).toBe(false);
 
     await act(async () => {
       unmount();
