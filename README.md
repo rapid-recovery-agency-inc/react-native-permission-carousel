@@ -126,18 +126,27 @@ const APP_PERMISSIONS = {
 };
 
 export default function App() {
+  const permissionsReady = true; // Replace with your app-specific startup condition.
+
   return (
-    <PermissionsProvider permissions={APP_PERMISSIONS} permissionsStorageKey="@my-app/permissions">
+    <PermissionsProvider
+      ready={permissionsReady}
+      permissions={APP_PERMISSIONS}
+      permissionsStorageKey="@my-app/permissions"
+    >
       {/* rest of your app */}
     </PermissionsProvider>
   );
 }
 ```
 
+Use the `ready` prop to control when permission hydration/checks begin. Keep it generic to your app lifecycle (for example: user session loaded, feature flags ready, or onboarding complete).
+
 **`PermissionsProvider` Props**
 
 | Prop                    | Type          | Required | Description                                                                                                     |
 | ----------------------- | ------------- | -------- | --------------------------------------------------------------------------------------------------------------- |
+| `ready`                 | `boolean`     | Yes      | Controls when the provider starts hydration, persistence, and native permission checks.                         |
 | `permissions`           | `Permissions` | Yes      | The permissions configuration object for your application.                                                      |
 | `permissionsStorageKey` | `string`      | No       | A unique key used to persist permission state via AsyncStorage. Defaults to `@insightt-mobile-app/permissions`. |
 
