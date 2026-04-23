@@ -14,8 +14,6 @@ ios/
 *.log
 
 # Environment variables
-.env
-.env.*
 
 # Build output 
 build/
@@ -31,3 +29,4 @@ coverage/
 # SO
 .DS_Store*
 
+config.bat
