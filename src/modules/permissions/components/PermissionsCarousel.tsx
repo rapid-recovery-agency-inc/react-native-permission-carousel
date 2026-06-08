@@ -217,10 +217,10 @@ const responsiveStyles = createThemeStyleSheet({
   },
   paginationContainer: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 4,
   },
   paginationDot: {
-    width: 24,
+    width: 4,
     height: 4,
     borderRadius: 4,
     borderWidth: 1,
@@ -229,6 +229,7 @@ const responsiveStyles = createThemeStyleSheet({
     opacity: 0.2,
   },
   paginationDotActive: {
+    width: 32,
     opacity: 1,
   },
 });
