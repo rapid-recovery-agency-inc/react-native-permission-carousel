@@ -3,9 +3,6 @@ import globals from 'globals';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tseslintParser from '@typescript-eslint/parser';
 import pluginReact from 'eslint-plugin-react';
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
 
 let rraEslintPlugin = null;
 
