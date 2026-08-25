@@ -172,7 +172,8 @@ const responsiveStyles = createThemeStyleSheet({
   footer: {
     gap: 8,
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingTop: 8,
+    paddingBottom: 15,
   },
   iconOuterCircle: {
     alignItems: 'center',
