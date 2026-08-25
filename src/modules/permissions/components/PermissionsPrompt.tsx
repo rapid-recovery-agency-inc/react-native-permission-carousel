@@ -47,7 +47,6 @@ export function PermissionsPrompt({ warningButtonPosition }: PermissionsPromptPr
             description: value.description,
             iconName: value.iconName as PermissionsCarouselRequest['iconName'],
             onAccept: () => Promise.resolve(),
-            onReject: () => Promise.resolve(),
           },
         })),
     [permissions],
@@ -337,6 +336,8 @@ export function PermissionsPrompt({ warningButtonPosition }: PermissionsPromptPr
         return;
       }
 
+      // Always proceed to the system permission request after the educational
+      // pre-prompt (App Store guideline 5.1.1(iv) — no skip path).
       await handleRequest(permission);
 
       markHandled(permission);
@@ -344,25 +345,13 @@ export function PermissionsPrompt({ warningButtonPosition }: PermissionsPromptPr
     [handleRequest, markHandled],
   );
 
-  const handleReject = useCallback(
-    async (permission: Permission): Promise<void> => {
-      updatePermission(permission, (currentPermission) => ({
-        ...currentPermission,
-        skipped: true,
-      }));
-      markHandled(permission);
-    },
-    [markHandled, updatePermission],
-  );
-
   const requests: PermissionsCarouselRequest[] = useMemo(
     () =>
       frozenRequests.map(({ permission, request }) => ({
         ...request,
         onAccept: () => handleAccept(permission),
-        onReject: () => handleReject(permission),
       })),
-    [frozenRequests, handleAccept, handleReject],
+    [frozenRequests, handleAccept],
   );
 
   const isCarouselVisible = frozenRequests.length > 0 && handledPermissions.size < frozenRequests.length;

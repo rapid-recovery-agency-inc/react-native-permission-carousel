@@ -1,6 +1,6 @@
 {
   "name": "@rapid-recovery-agency-inc/react-native-permission-carousel",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "description": "React native permission carousel to manage user prompt, request and permission warnings across Insightt mobile projects",
   "type": "module",
   "publishConfig": {
@@ -62,7 +62,7 @@
     "prettier": "^3.0.0",
     "react": ">=18.2.0 <20.0.0",
     "react-dom": "^19.2.5",
-    "react-native": ">=0.71.16 <=0.81.4",
+    "react-native": ">=0.71.16 <=0.81.5",
     "react-native-gesture-handler": "2.10.0",
     "react-native-permissions": "^5.5.1",
     "react-native-reanimated": "3.4.2",
@@ -75,10 +75,9 @@
     "@react-native-async-storage/async-storage": "^2.0.0",
     "i18next": ">=23.0.0",
     "react": ">=18.2.0 <20.0.0",
-    "react-native": ">=0.71.16 <=0.81.4",
+    "react-native": ">=0.71.16 <=0.81.5",
     "react-native-gesture-handler": ">=2.10.0",
     "react-native-permissions": "^5.5.1",
-    "react-native-reanimated": ">=3.4.2",
-    "react-native-reanimated-carousel": "^4.0.2"
+    "react-native-reanimated": ">=3.4.2"
   }
 }

@@ -80,8 +80,10 @@ export interface PermissionConfig {
   requested: boolean;
 
   /**
-   * Skipped: Indicates whether the user has skipped the permission prompt. This is used to determine
-   * whether to show the permission prompt again.
+   * Skipped: Legacy flag for permissions that were skipped from an older carousel UI.
+   * The current App Store–compliant flow no longer offers Skip; new prompts always
+   * proceed to the system permission request. Kept for persisted storage compatibility
+   * and for showing warnings when a required permission was previously skipped.
    */
   skipped: boolean;
 

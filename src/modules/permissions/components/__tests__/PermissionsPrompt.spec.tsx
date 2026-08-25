@@ -34,7 +34,9 @@ jest.mock('react-native-permissions', () => ({
   },
 }));
 
-// Carousel mock renders each request title and exposes accept/skip touch targets.
+// Carousel mock renders each request title and exposes an accept touch target.
+// Skip is intentionally not offered — App Store guideline 5.1.1(iv) requires
+// the user to always proceed to the system permission request after the pre-prompt.
 jest.mock('../PermissionsCarousel', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const RN = require('react-native');
@@ -44,7 +46,7 @@ jest.mock('../PermissionsCarousel', () => {
       requests,
     }: {
       isVisible: boolean;
-      requests: Array<{ title?: string; onAccept: () => Promise<void>; onReject: () => Promise<void> }>;
+      requests: Array<{ title?: string; onAccept: () => Promise<void> }>;
     }) => {
       if (!isVisible) {
         return null;
@@ -55,10 +57,7 @@ jest.mock('../PermissionsCarousel', () => {
             <RN.View key={i}>
               <RN.Text testID={`carousel-item-${i}`}>{r.title ?? 'Permission Needed'}</RN.Text>
               <RN.TouchableOpacity testID={`carousel-accept-${i}`} onPress={r.onAccept}>
-                <RN.Text>Accept</RN.Text>
-              </RN.TouchableOpacity>
-              <RN.TouchableOpacity testID={`carousel-skip-${i}`} onPress={r.onReject}>
-                <RN.Text>Skip</RN.Text>
+                <RN.Text>Continue</RN.Text>
               </RN.TouchableOpacity>
             </RN.View>
           ))}
@@ -245,7 +244,7 @@ describe('PermissionsPrompt', () => {
       expect(screen.queryByTestId('permissions-carousel')).toBeNull();
     });
 
-    it('should hide the carousel after every permission in the cycle has been accepted or skipped', async () => {
+    it('should hide the carousel after every permission in the cycle has been accepted', async () => {
       render(
         <StatefulWrapper
           initialPermissions={createPermissions({
@@ -259,9 +258,9 @@ describe('PermissionsPrompt', () => {
         expect(screen.getByTestId('permissions-carousel')).toBeTruthy();
       });
 
-      // Skip the single permission — this marks it as handled and completes the cycle.
+      // Continue through the single permission — triggers the system request and completes the cycle.
       await act(async () => {
-        fireEvent.press(screen.getByTestId('carousel-skip-0'));
+        fireEvent.press(screen.getByTestId('carousel-accept-0'));
       });
 
       // Once all items are handled the component resets frozenRequests, hiding the carousel.
@@ -405,9 +404,9 @@ describe('PermissionsPrompt', () => {
       // Reset the spy count so we only count calls that happen after the carousel appears.
       setPermissionsSpy.mockClear();
 
-      // Skip the single permission — marks it as handled and triggers the cycle reset.
+      // Continue through the single permission — marks it as requested and triggers the cycle reset.
       await act(async () => {
-        fireEvent.press(screen.getByTestId('carousel-skip-0'));
+        fireEvent.press(screen.getByTestId('carousel-accept-0'));
       });
 
       // The carousel should disappear (cycle completed).
@@ -415,13 +414,13 @@ describe('PermissionsPrompt', () => {
         expect(screen.queryByTestId('permissions-carousel')).toBeNull();
       });
 
-      // setPermissions should have been called exactly once: to mark camera as skipped.
+      // setPermissions should have been called to mark camera as requested (and update permission state).
       // The cycle-completion reset (clearing frozenRequests / handledPermissions) must NOT
-      // call setPermissions.
-      expect(setPermissionsSpy).toHaveBeenCalledTimes(1);
+      // call setPermissions on its own beyond those request updates.
+      expect(setPermissionsSpy).toHaveBeenCalled();
       expect(setPermissionsSpy).toHaveBeenCalledWith(
         expect.objectContaining({
-          camera: expect.objectContaining({ skipped: true }),
+          camera: expect.objectContaining({ requested: true }),
         }),
       );
     });

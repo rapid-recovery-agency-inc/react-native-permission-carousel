@@ -17,20 +17,22 @@ export interface PermissionRequest {
   description: string;
   iconName?: FontAwesomeIconName;
   onAccept: () => Promise<void>;
-  onReject: () => Promise<void>;
 }
 
 export interface PermissionsCarouselProps {
   isVisible: boolean;
   requests: PermissionRequest[];
+  /**
+   * Primary CTA before the system permission dialog.
+   * App Store guideline 5.1.1(iv) requires wording like "Continue" or "Next"
+   * (not "Okay"/"OK") and does not allow skipping the system request.
+   */
   acceptButtonText?: string;
-  rejectButtonText?: string;
 }
 
 export const PermissionsCarousel = ({
   requests,
-  acceptButtonText,
-  rejectButtonText,
+  acceptButtonText = 'Continue',
   isVisible,
 }: PermissionsCarouselProps) => {
   const styles = useThemedStyles(responsiveStyles);
@@ -77,17 +79,6 @@ export const PermissionsCarousel = ({
 
     setPending(true);
     await currentRequest.onAccept();
-    goToNextSlide();
-    setPending(false);
-  };
-
-  const handleReject = async () => {
-    if (!currentRequest || isAnimating) {
-      return;
-    }
-
-    setPending(true);
-    await currentRequest.onReject();
     goToNextSlide();
     setPending(false);
   };
@@ -140,15 +131,9 @@ export const PermissionsCarousel = ({
           {currentRequest ? (
             <View style={styles.footer}>
               <Button
-                text={acceptButtonText || 'Okay'}
+                text={acceptButtonText}
                 fullWidth={false}
                 onPress={handleAccept}
-                disabled={isAnimating || pending}
-              />
-              <Button
-                text={rejectButtonText || 'Skip'}
-                variant="transparent"
-                onPress={handleReject}
                 disabled={isAnimating || pending}
               />
             </View>
