@@ -63,16 +63,15 @@ This package relies on peer dependencies provided by your app. They are not bund
 | `@react-native-async-storage/async-storage`  | `^2.0.0`             |
 | `i18next`                                    | `>=23.0.0`           |
 | `react`                                      | `>=18.2.0 <20.0.0`   |
-| `react-native`                               | `>=0.71.16 <=0.81.4` |
+| `react-native`                               | `>=0.71.16 <=0.81.5` |
 | `react-native-gesture-handler`               | `>=2.10.0`           |
 | `react-native-permissions`                   | `^5.5.1`             |
 | `react-native-reanimated`                    | `>=3.4.2`            |
-| `react-native-reanimated-carousel`           | `^4.0.2`             |
 
 If you are using `npm` v7+, peer dependencies are installed automatically in many cases. If not, install them manually:
 
 ```bash
-npm install @rapid-recovery-agency-inc/sloth-ui-mobile @react-native-async-storage/async-storage i18next react react-native react-native-gesture-handler react-native-permissions react-native-reanimated react-native-reanimated-carousel
+npm install @rapid-recovery-agency-inc/sloth-ui-mobile @react-native-async-storage/async-storage i18next react react-native react-native-gesture-handler react-native-permissions react-native-reanimated
 ```
 
 Refer to the [`react-native-permissions` setup guide](https://github.com/zoontek/react-native-permissions) for platform-specific configuration (iOS `Info.plist` entries and Android `AndroidManifest.xml` permissions).
@@ -187,7 +186,7 @@ export default function HomeScreen() {
 }
 ```
 
-`PermissionsPrompt` automatically shows the carousel for any permissions with `prompt: true` that have not yet been requested or skipped. Once all prompted permissions are handled, it will display a warning screen for any required permissions that are denied or blocked.
+`PermissionsPrompt` automatically shows the carousel for any permissions with `prompt: true` that have not yet been requested or skipped. After the educational pre-prompt, the user must press **Continue** (or **Next**) and always proceeds to the system permission dialog — there is no Skip path (App Store guideline 5.1.1(iv)). Once all prompted permissions are handled, it will display a warning screen for any required permissions that are denied or blocked.
 
 **`PermissionsPrompt` Props**
 
