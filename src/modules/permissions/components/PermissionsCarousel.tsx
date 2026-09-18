@@ -12,6 +12,8 @@ import {
   ModalProvider,
 } from '@rapid-recovery-agency-inc/sloth-ui-mobile';
 
+import { useBottomInset } from '../../../shared/hooks/useBottomInset';
+
 export interface PermissionRequest {
   title?: string;
   description: string;
@@ -37,6 +39,9 @@ export const PermissionsCarousel = ({
 }: PermissionsCarouselProps) => {
   const styles = useThemedStyles(responsiveStyles);
   const { width } = useWindowDimensions();
+  // Keeps the footer CTA clear of the Android navigation bar; iOS and Android
+  // gesture navigation are unchanged. See src/shared/hooks/useBottomInset.ts.
+  const bottomInset = useBottomInset();
 
   const [slideIndex, setSlideIndex] = useState<number>(0);
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
@@ -85,7 +90,13 @@ export const PermissionsCarousel = ({
 
   return (
     <ModalProvider>
-      <MainModal mode="full" isVisible={isVisible} maxHeightRatio={1} includeKeyboardController={false}>
+      <MainModal
+        mode="full"
+        isVisible={isVisible}
+        maxHeightRatio={1}
+        includeKeyboardController={false}
+        safeAreaInsets={{ top: 0, right: 0, bottom: bottomInset, left: 0 }}
+      >
         <View style={styles.modalContent}>
           <View style={styles.carouselViewport}>
             <Animated.View
@@ -173,6 +184,8 @@ const responsiveStyles = createThemeStyleSheet({
     gap: 8,
     paddingHorizontal: 16,
     paddingTop: 8,
+    // Minimum design gap only — the system inset (home indicator / navigation
+    // bar) is applied by MainModal's safeAreaInsets.
     paddingBottom: 15,
   },
   iconOuterCircle: {

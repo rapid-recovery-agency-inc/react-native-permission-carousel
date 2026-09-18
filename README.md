@@ -20,6 +20,7 @@ https://github.com/user-attachments/assets/93ae353b-f19d-49a3-b09d-82031d8852c9
     - [1. Configure the Provider](#1-configure-the-provider)
     - [2. Add the Permission Prompt](#2-add-the-permission-prompt)
     - [3. Request Permissions Contextually](#3-request-permissions-contextually)
+    - [4. Safe Area & Edge-to-Edge (Android)](#4-safe-area--edge-to-edge-android)
   - [i18n Integration](#i18n-integration)
   - [API Reference](#api-reference)
 - [Contributing](#contributing)
@@ -67,11 +68,14 @@ This package relies on peer dependencies provided by your app. They are not bund
 | `react-native-gesture-handler`               | `>=2.10.0`           |
 | `react-native-permissions`                   | `^5.5.1`             |
 | `react-native-reanimated`                    | `>=3.4.2`            |
+| `react-native-safe-area-context`             | `>=4.0.0 <6.0.0`     |
+
+`@expo/config-plugins` (`>=50.0.0`) is an **optional** peer dependency, required only if you use the Android edge-to-edge config plugin described in [step 4](#4-safe-area--edge-to-edge-android).
 
 If you are using `npm` v7+, peer dependencies are installed automatically in many cases. If not, install them manually:
 
 ```bash
-npm install @rapid-recovery-agency-inc/sloth-ui-mobile @react-native-async-storage/async-storage i18next react react-native react-native-gesture-handler react-native-permissions react-native-reanimated
+npm install @rapid-recovery-agency-inc/sloth-ui-mobile @react-native-async-storage/async-storage i18next react react-native react-native-gesture-handler react-native-permissions react-native-reanimated react-native-safe-area-context
 ```
 
 Refer to the [`react-native-permissions` setup guide](https://github.com/zoontek/react-native-permissions) for platform-specific configuration (iOS `Info.plist` entries and Android `AndroidManifest.xml` permissions).
@@ -194,6 +198,8 @@ export default function HomeScreen() {
 | ----------------------- | ----------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `warningButtonPosition` | `WarningButtonPosition` | No       | Override the position of the warning button. The button is always positioned absolutely; this prop accepts only `top`, `right`, `bottom`, `left`, `width`, and `height`. Defaults to `{ top: 64, right: 64 }`. |
 
+> **Note:** `PermissionsPrompt` requires a `SafeAreaProvider` above it — see [step 4](#4-safe-area--edge-to-edge-android). When you anchor the warning button with `warningButtonPosition.bottom`, the device's bottom safe-area inset is added to the value you pass, so it stays clear of the home indicator and the Android navigation bar.
+
 ---
 
 #### 3. Request Permissions Contextually
@@ -216,6 +222,90 @@ export default function PhotoUploadScreen() {
 ```
 
 > **Note:** For this to work, the permission must have `prompt: false` in its initial configuration so it is not shown on app load. The hook will temporarily enable prompting for the duration of the screen's lifecycle.
+
+---
+
+#### 4. Safe Area & Edge-to-Edge (Android)
+
+The carousel and warning UI are full-screen, bottom-anchored surfaces. They read the device's safe-area insets so the **Continue** button and the floating warning button never sit under the home indicator or the Android navigation bar.
+
+Two things are required from the host app.
+
+**1. Wrap your app in `SafeAreaProvider`**
+
+`PermissionsCarousel` and `PermissionsWarning` call `useSafeAreaInsets()` internally, which throws if no provider is present. Place `SafeAreaProvider` (from `react-native-safe-area-context`) above any screen that renders `PermissionsPrompt`:
+
+```tsx
+import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
+
+export default function App() {
+  return (
+    <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+      <PermissionsProvider ready={permissionsReady} permissions={APP_PERMISSIONS}>
+        {/* rest of your app */}
+      </PermissionsProvider>
+    </SafeAreaProvider>
+  );
+}
+```
+
+> Use `react-native-safe-area-context`'s `SafeAreaView` (cross-platform) rather than React Native's deprecated iOS-only `SafeAreaView`, and never combine a wrapper `SafeAreaView` with manual inset padding in the same component — that double-pads.
+
+**2. Enable edge-to-edge on Android**
+
+Without edge-to-edge, `useSafeAreaInsets().bottom` reports `0` on Android and bottom-anchored content draws behind the navigation bar.
+
+_Expo / CNG apps_ — set the flag and add the config plugin bundled with this package. It calls the top-level `enableEdgeToEdge()` in `MainActivity` and makes the `AppTheme` navigation bar translucent:
+
+```ts
+// app.config.ts
+export default {
+  android: { edgeToEdgeEnabled: true },
+  plugins: ['@rapid-recovery-agency-inc/react-native-permission-carousel/plugins/with-edge-to-edge'],
+};
+```
+
+_Bare React Native apps_ — apply the equivalent in `MainActivity` yourself:
+
+```kotlin
+// MainActivity.kt
+import androidx.activity.enableEdgeToEdge
+
+override fun onCreate(savedInstanceState: Bundle?) {
+  super.onCreate(null)
+  enableEdgeToEdge() // top-level function — enableEdgeToEdge(this) no longer compiles
+}
+```
+
+**How bottom insets are applied**
+
+| Platform / mode              | `bottom` inset | Result                         |
+| ---------------------------- | -------------- | ------------------------------ |
+| iOS home indicator           | 24–34          | Used as-is                     |
+| Android gesture navigation   | 24             | Used as-is                     |
+| Android 3-button navigation  | 48             | Used as-is + 16 breathing room |
+
+That logic lives in one place, inside the package — `src/shared/hooks/useBottomInset.ts`. It is an internal implementation detail of the carousel and warning surfaces and is **not** part of the public API, so there is nothing extra to import and no risk of clashing with a hook of the same name in your app.
+
+For your own floating bottom UI, read the insets directly and apply the same rule:
+
+```tsx
+import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const ANDROID_NAV_BAR_INSET_THRESHOLD = 40;
+
+function FloatingFooter() {
+  const { bottom } = useSafeAreaInsets();
+  // Only add breathing room when a real Android navigation bar is on screen.
+  const paddingBottom =
+    Platform.OS === 'android' && bottom >= ANDROID_NAV_BAR_INSET_THRESHOLD ? bottom + 16 : bottom;
+
+  return <View style={{ paddingBottom }}>{/* ... */}</View>;
+}
+```
+
+A component that is already inside a `SafeAreaView` should **not** also apply bottom inset padding.
 
 ---
 
@@ -444,8 +534,14 @@ const APP_PERMISSIONS = {
 };
 
 export default function App() {
+  const permissionsReady = true; // Replace with your app-specific startup condition.
+
   return (
-    <PermissionsProvider permissions={APP_PERMISSIONS} permissionsStorageKey="@my-app/permissions">
+    <PermissionsProvider
+      ready={permissionsReady}
+      permissions={APP_PERMISSIONS}
+      permissionsStorageKey="@my-app/permissions"
+    >
       {/* rest of your app */}
     </PermissionsProvider>
   );
@@ -621,13 +717,14 @@ This project uses [Husky](https://typicode.github.io/husky/) to enforce quality 
 
 | Script                 | Description                                                                   |
 | ---------------------- | ----------------------------------------------------------------------------- |
-| `npm run lint`         | Runs ESLint across the `src` directory.                                       |
+| `npm run lint`         | Runs ESLint across the `src` and `plugins` directories.                       |
 | `npm run lint-fix`     | Runs ESLint and automatically fixes issues where possible.                    |
-| `npm run format`       | Formats source files with Prettier.                                           |
-| `npm run format-check` | Checks source files for formatting issues without writing changes.            |
+| `npm run format`       | Formats `src` and `plugins` with Prettier.                                    |
+| `npm run format-check` | Checks `src` and `plugins` for formatting issues without writing changes.     |
 | `npm run typecheck`    | Runs the TypeScript compiler without emitting files to check for type errors. |
 | `npm run test`         | Runs the full Jest test suite.                                                |
 | `npm run test-watch`   | Runs Jest in watch mode.                                                      |
+| `npm run precommit`    | Runs lint, format-check, typecheck, and test in sequence.                     |
 
 ---
 
@@ -650,8 +747,13 @@ src/
 │           ├── usePermissionRequest.tsx  # Triggers a contextual permission prompt
 │           └── useIsForeground.ts        # Detects when the app returns to the foreground
 └── shared/
+    ├── hooks/
+    │   └── useBottomInset.ts             # Single source of truth for bottom safe-area insets
     └── i18n/
         ├── index.ts                      # i18n registration helpers
         └── locales/
             └── en.ts                     # Default English translations
+
+plugins/
+└── with-edge-to-edge.ts                  # Expo config plugin: Android edge-to-edge + translucent nav bar
 ```

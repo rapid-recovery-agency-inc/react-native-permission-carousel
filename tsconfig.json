@@ -13,7 +13,7 @@
     "resolveJsonModule": true,
     "types": ["react-native", "node", "jest", "mocha"]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts", "*.d.ts"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts", "plugins/**/*.ts", "*.d.ts"],
   "exclude": [
     "node_modules",
     "docs",
