@@ -19,3 +19,10 @@ i18next.init({
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
 );
+
+// Provides SafeAreaProvider / useSafeAreaInsets defaults so components that read
+// system insets can render without a real provider. Individual tests override
+// values via SafeAreaInsetsContext.
+jest.mock('react-native-safe-area-context', () =>
+  require('react-native-safe-area-context/jest/mock').default,
+);

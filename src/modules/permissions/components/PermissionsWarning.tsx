@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { openSettings } from 'react-native-permissions';
 import { MainModal, MainText, Icon, useThemeColor } from '@rapid-recovery-agency-inc/sloth-ui-mobile';
 
 import { Permission, Permissions, WarningButtonPosition } from '../types';
 import { t } from '../../../shared/i18n';
+import { useBottomInset } from '../../../shared/hooks/useBottomInset';
 
 export interface PermissionsWarningProps {
   missingPermissions: Partial<Permissions>;
@@ -20,6 +21,17 @@ export function PermissionsWarning({
   const [showModal, setModal] = useState(false);
 
   const warningColor = useThemeColor('uiWarningSolid');
+  // Keeps the floating button clear of the Android navigation bar when the
+  // consumer anchors it to the bottom. See src/shared/hooks/useBottomInset.ts.
+  const bottomInset = useBottomInset();
+
+  const resolvedButtonPosition = useMemo<WarningButtonPosition | undefined>(() => {
+    if (buttonPosition?.bottom === undefined) {
+      return buttonPosition;
+    }
+
+    return { ...buttonPosition, bottom: buttonPosition.bottom + bottomInset };
+  }, [buttonPosition, bottomInset]);
 
   if (showModal) {
     return (
@@ -27,7 +39,7 @@ export function PermissionsWarning({
         isVisible={true}
         mode="full"
         title={t('permissions:missing.intro.title')}
-        safeAreaInsets={{ top: 56, right: 24, bottom: 0, left: 24 }}
+        safeAreaInsets={{ top: 56, right: 24, bottom: bottomInset, left: 24 }}
         onClose={() => {
           setModal(false);
         }}
@@ -92,7 +104,7 @@ export function PermissionsWarning({
         onPress={() => {
           setModal(true);
         }}
-        style={[styles.button, buttonPosition]}
+        style={[styles.button, resolvedButtonPosition]}
       >
         <View style={[styles.icon, { backgroundColor: warningColor }]}>
           <Icon iconName="exclamation" themeColor="fgAlwaysWhite" size={20} />
