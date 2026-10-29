@@ -1,6 +1,6 @@
 import React from 'react';
 import { Platform } from 'react-native';
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 
 import { PermissionsCarousel } from '../PermissionsCarousel';
@@ -12,26 +12,10 @@ jest.mock('@rapid-recovery-agency-inc/sloth-ui-mobile', () => {
   return {
     createThemeStyleSheet: (styles: Record<string, unknown>) => styles,
     useThemedStyles: (styles: Record<string, unknown>) => styles,
-    ModalProvider: ({ children }: { children: React.ReactNode }) => <RN.View>{children}</RN.View>,
-    MainModal: ({
-      children,
-      isVisible,
-      safeAreaInsets,
-    }: {
-      children: React.ReactNode;
-      isVisible: boolean;
-      safeAreaInsets?: { top: number; right: number; bottom: number; left: number };
-    }) =>
-      isVisible ? (
-        <RN.View testID="permissions-carousel-modal">
-          <RN.Text testID="modal-bottom-inset">{String(safeAreaInsets?.bottom)}</RN.Text>
-          {children}
-        </RN.View>
-      ) : null,
     MainText: ({ children }: { children: React.ReactNode }) => <RN.Text>{children}</RN.Text>,
     Icon: ({ iconName }: { iconName: string }) => <RN.Text>{`icon:${iconName}`}</RN.Text>,
-    Button: ({ text, onPress }: { text: string; onPress: () => void }) => (
-      <RN.TouchableOpacity onPress={onPress}>
+    Button: ({ text, onPress, disabled }: { text: string; onPress: () => void; disabled?: boolean }) => (
+      <RN.TouchableOpacity onPress={onPress} disabled={disabled} accessibilityState={{ disabled }}>
         <RN.Text>{text}</RN.Text>
       </RN.TouchableOpacity>
     ),
@@ -50,9 +34,11 @@ const renderCarousel = (bottomInset: number) =>
 describe('PermissionsCarousel', () => {
   beforeEach(() => {
     requests[0].onAccept.mockClear();
+    jest.useFakeTimers();
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     jest.restoreAllMocks();
   });
 
@@ -61,9 +47,12 @@ describe('PermissionsCarousel', () => {
 
     await act(async () => {
       fireEvent.press(screen.getByText('Continue'));
+      jest.advanceTimersByTime(32);
     });
 
-    expect(requests[0].onAccept).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(requests[0].onAccept).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('adds the navigation bar gap to the modal bottom inset on Android 3-button navigation', () => {
@@ -71,7 +60,7 @@ describe('PermissionsCarousel', () => {
 
     renderCarousel(48);
 
-    expect(screen.getByTestId('modal-bottom-inset')).toHaveTextContent('64');
+    expect(screen.getByTestId('permissions-carousel-root')).toHaveStyle({ paddingBottom: 64 });
   });
 
   it('leaves the Android gesture navigation inset untouched', () => {
@@ -79,12 +68,12 @@ describe('PermissionsCarousel', () => {
 
     renderCarousel(24);
 
-    expect(screen.getByTestId('modal-bottom-inset')).toHaveTextContent('24');
+    expect(screen.getByTestId('permissions-carousel-root')).toHaveStyle({ paddingBottom: 24 });
   });
 
   it('leaves the iOS home indicator inset untouched', () => {
     renderCarousel(34);
 
-    expect(screen.getByTestId('modal-bottom-inset')).toHaveTextContent('34');
+    expect(screen.getByTestId('permissions-carousel-root')).toHaveStyle({ paddingBottom: 34 });
   });
 });
