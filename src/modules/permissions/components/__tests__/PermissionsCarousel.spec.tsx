@@ -34,11 +34,9 @@ const renderCarousel = (bottomInset: number) =>
 describe('PermissionsCarousel', () => {
   beforeEach(() => {
     requests[0].onAccept.mockClear();
-    jest.useFakeTimers();
   });
 
   afterEach(() => {
-    jest.useRealTimers();
     jest.restoreAllMocks();
   });
 
@@ -47,7 +45,6 @@ describe('PermissionsCarousel', () => {
 
     await act(async () => {
       fireEvent.press(screen.getByText('Continue'));
-      jest.advanceTimersByTime(32);
     });
 
     await waitFor(() => {
