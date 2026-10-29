@@ -318,22 +318,20 @@ export function PermissionsPrompt({ warningButtonPosition }: PermissionsPromptPr
 
   const handleRequest = useCallback(
     async (permission: Permission): Promise<void> => {
-      try {
-        if (permission === Permission.LOCATION) {
-          await requestLocationPermission();
-        } else if (permission === Permission.CAMERA) {
-          await requestCameraPermission();
-        } else if (permission === Permission.PUSH_NOTIFICATIONS) {
-          await requestPushNotificationsPermission();
-        } else if (permission === Permission.TRACKING) {
-          await requestTrackingPermission();
-        }
-      } finally {
-        updatePermission(permission, (currentPermission) => ({
-          ...currentPermission,
-          requested: true,
-        }));
+      if (permission === Permission.LOCATION) {
+        await requestLocationPermission();
+      } else if (permission === Permission.CAMERA) {
+        await requestCameraPermission();
+      } else if (permission === Permission.PUSH_NOTIFICATIONS) {
+        await requestPushNotificationsPermission();
+      } else if (permission === Permission.TRACKING) {
+        await requestTrackingPermission();
       }
+
+      updatePermission(permission, (currentPermission) => ({
+        ...currentPermission,
+        requested: true,
+      }));
     },
     [
       requestCameraPermission,
