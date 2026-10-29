@@ -78,9 +78,12 @@ export const PermissionsCarousel = ({
     }
 
     setPending(true);
-    await currentRequest.onAccept();
-    goToNextSlide();
-    setPending(false);
+    try {
+      await currentRequest.onAccept();
+      goToNextSlide();
+    } finally {
+      setPending(false);
+    }
   };
 
   return (

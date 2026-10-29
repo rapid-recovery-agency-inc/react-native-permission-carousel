@@ -21,6 +21,7 @@ jest.mock('react-native-permissions', () => ({
     ANDROID: {
       ACCESS_BACKGROUND_LOCATION: 'android.location.background',
       ACCESS_FINE_LOCATION: 'android.location.fine',
+      ACCESS_COARSE_LOCATION: 'android.location.coarse',
       CAMERA: 'android.camera',
     },
   },

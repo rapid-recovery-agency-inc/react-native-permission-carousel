@@ -18,6 +18,10 @@ import {
 
 jest.mock('react-native-permissions', () => ({
   request: jest.fn().mockResolvedValue('denied'),
+  requestMultiple: jest.fn().mockResolvedValue({
+    'android.location.fine': 'denied',
+    'android.location.coarse': 'denied',
+  }),
   requestNotifications: jest.fn().mockResolvedValue({ status: 'denied' }),
   PERMISSIONS: {
     IOS: {
@@ -30,6 +34,7 @@ jest.mock('react-native-permissions', () => ({
       CAMERA: 'android.camera',
       ACCESS_BACKGROUND_LOCATION: 'android.location.background',
       ACCESS_FINE_LOCATION: 'android.location.fine',
+      ACCESS_COARSE_LOCATION: 'android.location.coarse',
     },
   },
 }));
