@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Platform } from 'react-native';
-import { PERMISSIONS, PermissionStatus, request, requestNotifications } from 'react-native-permissions';
+import {
+  PERMISSIONS,
+  PermissionStatus,
+  request,
+  requestMultiple,
+  requestNotifications,
+} from 'react-native-permissions';
 
 import { PermissionsCarousel } from './PermissionsCarousel';
 
@@ -244,11 +250,26 @@ export function PermissionsPrompt({ warningButtonPosition }: PermissionsPromptPr
       return;
     }
 
-    const fineStatus: PermissionStatus = await request(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION);
-    const fineState = getPermissionStateFromPermissionStatus(fineStatus);
+    // Android 12+ ignores ACCESS_FINE_LOCATION when requested alone — must request
+    // fine + coarse together or the system dialog never appears.
+    const foregroundStatuses = await requestMultiple([
+      PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
+      PERMISSIONS.ANDROID.ACCESS_COARSE_LOCATION,
+    ]);
+    const fineState = getPermissionStateFromPermissionStatus(
+      foregroundStatuses[PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION],
+    );
+    const coarseState = getPermissionStateFromPermissionStatus(
+      foregroundStatuses[PERMISSIONS.ANDROID.ACCESS_COARSE_LOCATION],
+    );
+    const foregroundGranted = fineState === PermissionState.GRANTED || coarseState === PermissionState.GRANTED;
 
-    if (fineState !== PermissionState.GRANTED) {
-      completeNativePermissionRequest(Permission.LOCATION, fineState, LocationPermissionGrantLevel.NONE);
+    if (!foregroundGranted) {
+      const deniedState =
+        fineState === PermissionState.BLOCKED || coarseState === PermissionState.BLOCKED
+          ? PermissionState.BLOCKED
+          : (fineState ?? coarseState);
+      completeNativePermissionRequest(Permission.LOCATION, deniedState, LocationPermissionGrantLevel.NONE);
       return;
     }
 

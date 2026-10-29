@@ -164,8 +164,19 @@ export function PermissionsProvider({
       };
     }
 
+    // Android 12+ lets the user grant approximate (coarse) only.
+    const coarseStatus = await check(PERMISSIONS.ANDROID.ACCESS_COARSE_LOCATION);
+    const coarseState = getPermissionStateFromPermissionStatus(coarseStatus);
+
+    if (coarseState === PermissionState.GRANTED) {
+      return {
+        permissionState: PermissionState.GRANTED,
+        locationGrantLevel: LocationPermissionGrantLevel.WHILE_IN_USE,
+      };
+    }
+
     return {
-      permissionState: fineState,
+      permissionState: fineState ?? coarseState,
       locationGrantLevel: LocationPermissionGrantLevel.NONE,
     };
   }, []);
