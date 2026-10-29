@@ -46,16 +46,12 @@ export const PermissionsCarousel = ({
   const [translateX] = useState(() => new Animated.Value(0));
   const currentRequest = useMemo(() => requests[slideIndex], [requests, slideIndex]);
   const [pending, setPending] = useState<boolean>(false);
-  // Hide the host Modal before calling into the OS permission APIs so the
-  // system dialog is not covered by Mapbox / app chrome (Android).
-  const [hostVisible, setHostVisible] = useState(true);
 
   useEffect(() => {
     if (!isVisible) {
       return;
     }
 
-    setHostVisible(true);
     translateX.stopAnimation();
     translateX.setValue(-slideIndex * width);
   }, [width, slideIndex, isVisible, translateX]);
@@ -85,21 +81,19 @@ export const PermissionsCarousel = ({
     }
 
     setPending(true);
-    setHostVisible(false);
     try {
-      // Let the RN Modal finish dismissing before the OS permission UI is shown.
-      await new Promise<void>((resolve) => setTimeout(resolve, 32));
+      // Keep this Modal mounted for the full carousel cycle so the app chrome
+      // never flashes between OS permission dialogs / slides.
       await currentRequest.onAccept();
       goToNextSlide();
     } finally {
       setPending(false);
-      setHostVisible(true);
     }
   };
 
   return (
     <Modal
-      visible={isVisible && hostVisible}
+      visible={isVisible}
       animationType="fade"
       presentationStyle="fullScreen"
       statusBarTranslucent

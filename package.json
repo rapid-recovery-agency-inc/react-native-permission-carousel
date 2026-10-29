@@ -1,6 +1,6 @@
 {
   "name": "@rapid-recovery-agency-inc/react-native-permission-carousel",
-  "version": "0.8.1",
+  "version": "0.9.1",
   "description": "React native permission carousel to manage user prompt, request and permission warnings across Insightt mobile projects",
   "type": "module",
   "publishConfig": {
