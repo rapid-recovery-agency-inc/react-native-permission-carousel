@@ -1,4 +1,4 @@
-import { Animated, Easing, useWindowDimensions, View } from 'react-native';
+import { Animated, Easing, Modal, useWindowDimensions, View } from 'react-native';
 import { useEffect, useMemo, useState } from 'react';
 
 import {
@@ -8,8 +8,6 @@ import {
   MainText,
   useThemedStyles,
   createThemeStyleSheet,
-  MainModal,
-  ModalProvider,
 } from '@rapid-recovery-agency-inc/sloth-ui-mobile';
 
 import { useBottomInset } from '../../../shared/hooks/useBottomInset';
@@ -48,12 +46,16 @@ export const PermissionsCarousel = ({
   const [translateX] = useState(() => new Animated.Value(0));
   const currentRequest = useMemo(() => requests[slideIndex], [requests, slideIndex]);
   const [pending, setPending] = useState<boolean>(false);
+  // Hide the host Modal before calling into the OS permission APIs so the
+  // system dialog is not covered by Mapbox / app chrome (Android).
+  const [hostVisible, setHostVisible] = useState(true);
 
   useEffect(() => {
     if (!isVisible) {
       return;
     }
 
+    setHostVisible(true);
     translateX.stopAnimation();
     translateX.setValue(-slideIndex * width);
   }, [width, slideIndex, isVisible, translateX]);
@@ -83,23 +85,28 @@ export const PermissionsCarousel = ({
     }
 
     setPending(true);
+    setHostVisible(false);
     try {
+      // Let the RN Modal finish dismissing before the OS permission UI is shown.
+      await new Promise<void>((resolve) => setTimeout(resolve, 32));
       await currentRequest.onAccept();
       goToNextSlide();
     } finally {
       setPending(false);
+      setHostVisible(true);
     }
   };
 
   return (
-    <ModalProvider>
-      <MainModal
-        mode="full"
-        isVisible={isVisible}
-        maxHeightRatio={1}
-        includeKeyboardController={false}
-        safeAreaInsets={{ top: 0, right: 0, bottom: bottomInset, left: 0 }}
-      >
+    <Modal
+      visible={isVisible && hostVisible}
+      animationType="fade"
+      presentationStyle="fullScreen"
+      statusBarTranslucent
+      // No dismiss path — App Store guideline 5.1.1(iv).
+      onRequestClose={() => undefined}
+    >
+      <View testID="permissions-carousel-root" style={[styles.modalRoot, { paddingBottom: bottomInset }]}>
         <View style={styles.modalContent}>
           <View style={styles.carouselViewport}>
             <Animated.View
@@ -153,18 +160,22 @@ export const PermissionsCarousel = ({
             </View>
           ) : null}
         </View>
-      </MainModal>
-    </ModalProvider>
+      </View>
+    </Modal>
   );
 };
 
 const responsiveStyles = createThemeStyleSheet({
+  modalRoot: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'bgModal',
+  },
   modalContent: {
     flex: 1,
     height: '100%',
     width: '100%',
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
   },
   carouselViewport: {
     flex: 1,
@@ -187,8 +198,7 @@ const responsiveStyles = createThemeStyleSheet({
     gap: 8,
     paddingHorizontal: 16,
     paddingTop: 8,
-    // Minimum design gap only — the system inset (home indicator / navigation
-    // bar) is applied by MainModal's safeAreaInsets.
+    // Minimum design gap only — system inset is applied on modalRoot.
     paddingBottom: 15,
   },
   iconOuterCircle: {
