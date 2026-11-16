@@ -74,7 +74,11 @@ describe('PermissionsCarousel', () => {
 
     const custom = screen.getByTestId('custom-description');
     expect(screen.getByText('Custom styled paragraph')).toBeTruthy();
-    expect(custom.parent?.type).toBe(View);
+    let ancestor = custom.parent;
+    while (ancestor) {
+      expect(ancestor.type).not.toBe(Text);
+      ancestor = ancestor.parent;
+    }
   });
 
   it('adds the navigation bar gap to the modal bottom inset on Android 3-button navigation', () => {
