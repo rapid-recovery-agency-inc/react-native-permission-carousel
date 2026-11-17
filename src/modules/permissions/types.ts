@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 /**
  * Permission: An enum representing the different types of permissions that the app may request from the
  * user. This is used to standardize permission handling across the app and ensure consistency in how
@@ -41,8 +43,9 @@ export interface PermissionConfig {
    * Description: A more detailed explanation of why the permission is needed and how it will be used.
    * This is used to provide additional context to the user, helping them understand the value of granting
    * the permission and how it will enhance their experience with the app.
+   * Strings render with the default body style; a ReactNode renders as-is for fully custom content.
    */
-  description: string;
+  description: string | ReactNode;
 
   /**
    * IconName: The name of the icon to represent the permission in the UI. This is used to provide a visual

@@ -1,5 +1,5 @@
 import { Animated, Easing, Modal, useWindowDimensions, View } from 'react-native';
-import { useEffect, useMemo, useState } from 'react';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
 
 import {
   Button,
@@ -14,7 +14,11 @@ import { useBottomInset } from '../../../shared/hooks/useBottomInset';
 
 export interface PermissionRequest {
   title?: string;
-  description: string;
+  /**
+   * Strings render with the default body style; a ReactNode renders as-is for
+   * fully custom content (mixed colors, weights, or emphasized spans).
+   */
+  description: string | ReactNode;
   iconName?: FontAwesomeIconName;
   onAccept: () => Promise<void>;
 }
@@ -113,7 +117,10 @@ export const PermissionsCarousel = ({
               ]}
             >
               {requests?.map(({ title, description, iconName }, index) => (
-                <View style={[styles.slide, { width }]} key={`${description}-${index}`}>
+                <View
+                  style={[styles.slide, { width }]}
+                  key={`${typeof description === 'string' ? description : 'custom'}-${index}`}
+                >
                   <View style={styles.main}>
                     {iconName ? (
                       <View style={styles.iconOuterCircle}>
@@ -126,9 +133,13 @@ export const PermissionsCarousel = ({
                       <MainText size={20} weight="black" textAlign="center">
                         {title ?? 'Permission Needed'}
                       </MainText>
-                      <MainText size={14} weight="book" themeColor="fgSecondary" textAlign="center">
-                        {description}
-                      </MainText>
+                      {typeof description === 'string' ? (
+                        <MainText size={14} weight="book" themeColor="fgSecondary" textAlign="center">
+                          {description}
+                        </MainText>
+                      ) : (
+                        description
+                      )}
                     </View>
                     <View style={styles.paginationContainer}>
                       {requests?.map((_, index) => (

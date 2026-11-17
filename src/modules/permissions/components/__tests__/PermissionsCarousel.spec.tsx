@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, Text, View } from 'react-native';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 
@@ -50,6 +50,35 @@ describe('PermissionsCarousel', () => {
     await waitFor(() => {
       expect(requests[0].onAccept).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it('renders a ReactNode description as-is instead of the default body style', () => {
+    render(
+      <SafeAreaInsetsContext.Provider value={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+        <PermissionsCarousel
+          isVisible={true}
+          requests={[
+            {
+              title: 'Location',
+              description: (
+                <View testID="custom-description">
+                  <Text>Custom styled paragraph</Text>
+                </View>
+              ),
+              onAccept: jest.fn(),
+            },
+          ]}
+        />
+      </SafeAreaInsetsContext.Provider>,
+    );
+
+    const custom = screen.getByTestId('custom-description');
+    expect(screen.getByText('Custom styled paragraph')).toBeTruthy();
+    let ancestor = custom.parent;
+    while (ancestor) {
+      expect(ancestor.type).not.toBe(Text);
+      ancestor = ancestor.parent;
+    }
   });
 
   it('adds the navigation bar gap to the modal bottom inset on Android 3-button navigation', () => {
